@@ -4475,8 +4475,9 @@ nsComputedDOMStyle::DoGetFilter()
 
   const nsStyleSVGReset* svg = StyleSVGReset();
 
-  if (svg->mFilter)
-    val->SetURI(svg->mFilter);
+  // FIXME(krit,mvujovic): Handle CSS filters and multiple SVG reference filters.
+  if (svg->mFilter.Length() == 1 && svg->mFilter[0].mType == nsStyleFilter::Type::URL)
+    val->SetURI(svg->mFilter[0].mUrl);
   else
     val->SetIdent(eCSSKeyword_none);
 

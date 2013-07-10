@@ -2258,6 +2258,35 @@ struct nsStyleSVG {
   bool mStrokeWidthFromObject       : 1;
 };
 
+struct nsStyleFilter {
+  // FIXME(krit,mvujovic): Should we override new operator?
+  nsStyleFilter();
+  nsStyleFilter(const nsStyleFilter& aSource);
+  ~nsStyleFilter();
+
+  enum Type {
+    Null,
+    URL,
+    Grayscale,
+    Saturate,
+    Sepia,
+    Invert,
+    Opacity,
+    Brightness,
+    Contrast,
+    HueRotate,
+    Blur,
+    DropShadow
+  };
+
+  Type mType;
+  union {
+    nsIURI *mUrl;
+    nsStyleCoord mValue;
+    nsCSSShadowItem mShadow;
+  };
+};
+
 struct nsStyleSVGReset {
   nsStyleSVGReset();
   nsStyleSVGReset(const nsStyleSVGReset& aSource);
@@ -2271,24 +2300,31 @@ struct nsStyleSVGReset {
     aContext->FreeToShell(sizeof(nsStyleSVGReset), this);
   }
 
+  // Before, we only supported a single filter url. Moving forward, we will support multiple filter
+  // urls and CSS filter functions.
+  nsIURI* DeprecatedFilter() const { 
+    return mFilter.Length() == 1 && mFilter[0].mType == nsStyleFilter::Type::URL ?
+           mFilter[0].mUrl : nullptr;
+  }
+
   nsChangeHint CalcDifference(const nsStyleSVGReset& aOther) const;
   static nsChangeHint MaxDifference() {
     return NS_CombineHint(nsChangeHint_UpdateEffects, NS_STYLE_HINT_REFLOW);
   }
 
-  nsCOMPtr<nsIURI> mClipPath;         // [reset]
-  nsCOMPtr<nsIURI> mFilter;           // [reset]
-  nsCOMPtr<nsIURI> mMask;             // [reset]
-  nscolor          mStopColor;        // [reset]
-  nscolor          mFloodColor;       // [reset]
-  nscolor          mLightingColor;    // [reset]
+  nsCOMPtr<nsIURI>        mClipPath;         // [reset]
+  nsTArray<nsStyleFilter> mFilter;           // [reset]
+  nsCOMPtr<nsIURI>        mMask;             // [reset]
+  nscolor                 mStopColor;        // [reset]
+  nscolor                 mFloodColor;       // [reset]
+  nscolor                 mLightingColor;    // [reset]
 
-  float            mStopOpacity;      // [reset]
-  float            mFloodOpacity;     // [reset]
+  float                   mStopOpacity;      // [reset]
+  float                   mFloodOpacity;     // [reset]
 
-  uint8_t          mDominantBaseline; // [reset] see nsStyleConsts.h
-  uint8_t          mVectorEffect;     // [reset] see nsStyleConsts.h
-  uint8_t          mMaskType;         // [reset] see nsStyleConsts.h
+  uint8_t                 mDominantBaseline; // [reset] see nsStyleConsts.h
+  uint8_t                 mVectorEffect;     // [reset] see nsStyleConsts.h
+  uint8_t                 mMaskType;         // [reset] see nsStyleConsts.h
 };
 
 #endif /* nsStyleStruct_h___ */

@@ -582,6 +582,7 @@ protected:
   bool ParseMargin();
   bool ParseMarks(nsCSSValue& aValue);
   bool ParseTransform(bool aIsPrefixed);
+  bool ParseFilter();
   bool ParseOutline();
   bool ParseOverflow();
   bool ParsePadding();
@@ -671,8 +672,9 @@ protected:
     return mParsingCompoundProperty;
   }
 
-  /* Functions for transform Parsing */
+  /* Functions for transform and filter Parsing */
   bool ParseSingleTransform(bool aIsPrefixed, nsCSSValue& aValue);
+  bool ParseSingleFilter(nsCSSValue& aValue);
   bool ParseFunction(nsCSSKeyword aFunction, const int32_t aAllowedTypes[],
                      int32_t aVariantMaskAll, uint16_t aMinElems,
                      uint16_t aMaxElems, nsCSSValue &aValue);
@@ -6551,6 +6553,8 @@ CSSParserImpl::ParsePropertyByFunction(nsCSSProperty aPropID)
     return ParseCounterData(aPropID);
   case eCSSProperty_cursor:
     return ParseCursor();
+  case eCSSProperty_filter:
+    return ParseFilter();
   case eCSSProperty_flex:
     return ParseFlex();
   case eCSSProperty_font:
@@ -9862,6 +9866,7 @@ static bool GetFunctionParseInformation(nsCSSKeyword aToken,
          eAngle,
          eTwoAngles,
          eNumber,
+         eNumberPercentCalc,
          ePositiveLength,
          eTwoNumbers,
          eThreeNumbers,
@@ -9880,6 +9885,7 @@ static bool GetFunctionParseInformation(nsCSSKeyword aToken,
     {VARIANT_ANGLE_OR_ZERO},
     {VARIANT_ANGLE_OR_ZERO, VARIANT_ANGLE_OR_ZERO},
     {VARIANT_NUMBER},
+    {VARIANT_NUMBER|VARIANT_PERCENT|VARIANT_CALC},
     {VARIANT_LENGTH|VARIANT_POSITIVE_DIMENSION},
     {VARIANT_NUMBER, VARIANT_NUMBER},
     {VARIANT_NUMBER, VARIANT_NUMBER, VARIANT_NUMBER},
@@ -10000,6 +10006,28 @@ static bool GetFunctionParseInformation(nsCSSKeyword aToken,
     aMinElems = 1U;
     aMaxElems = 1U;
     break;
+  /* Filter functions */
+  case eCSSKeyword_blur:
+    variantIndex = eLengthCalc;
+    aMinElems = 1U;
+    aMaxElems = 1U;
+    break;
+  case eCSSKeyword_hue_rotate:
+    variantIndex = eAngle;
+    aMinElems = 1U;
+    aMaxElems = 1U;
+    break;
+  case eCSSKeyword_grayscale:
+  case eCSSKeyword_brightness:
+  case eCSSKeyword_contrast:
+  case eCSSKeyword_invert:
+  case eCSSKeyword_opacity:
+  case eCSSKeyword_saturate:
+  case eCSSKeyword_sepia:
+    variantIndex = eNumberPercentCalc;
+    aMinElems = 1U;
+    aMaxElems = 1U;
+    break;
   default:
     /* Oh dear, we didn't match.  Report an error. */
     return false;
@@ -10044,6 +10072,58 @@ CSSParserImpl::ParseSingleTransform(bool aIsPrefixed, nsCSSValue& aValue)
     return false;
 
   return ParseFunction(keyword, variantMask, 0, minElems, maxElems, aValue);
+}
+
+bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
+{
+  if (!GetToken(true))
+    return false;
+
+  if(mToken.mType == eCSSToken_URL) {
+    ParseVariant(aValue, VARIANT_URL, nullptr);
+    return true;
+  }
+
+  if (mToken.mType != eCSSToken_Function) {
+    UngetToken();
+    return false;
+  }
+
+  nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
+  if (keyword == eCSSKeyword_drop_shadow)
+    return ParseShadowItem(aValue, false);
+
+  const int32_t* variantMask;
+  uint16_t minElems, maxElems;
+  if (!GetFunctionParseInformation(keyword, false, minElems, maxElems, variantMask))
+    return false;
+
+  return ParseFunction(keyword, variantMask, 0, minElems, maxElems, aValue);  
+}
+
+bool CSSParserImpl::ParseFilter()
+{
+  nsCSSValue value;
+  if (ParseVariant(value, VARIANT_INHERIT | VARIANT_NONE, nullptr)) {
+    // 'inherit', 'initial', and 'none' must be alone
+    if (!ExpectEndProperty()) {
+      return false;
+    }
+  } else {
+    nsCSSValueList* cur = value.SetListValue();
+    for (;;) {
+      if (!ParseSingleFilter(cur->mValue)) {
+        return false;
+      }
+      if (CheckEndProperty()) {
+        break;
+      }
+      cur->mNext = new nsCSSValueList;
+      cur = cur->mNext;
+    }
+  }
+  AppendValue(eCSSProperty_filter, value);
+  return true;  
 }
 
 /* Parses a transform property list by continuously reading in properties

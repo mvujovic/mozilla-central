@@ -7707,6 +7707,73 @@ nsRuleNode::ComputeSVGData(void* aStartStruct,
   COMPUTE_END_INHERITED(SVG, svg)
 }
 
+static nsStyleFilter::Type StyleFilterTypeForKeyword(nsCSSKeyword keyword)
+{
+  switch(keyword) {
+  case eCSSKeyword_blur:
+    return nsStyleFilter::Type::Blur;
+  case eCSSKeyword_brightness:
+    return nsStyleFilter::Type::Brightness;
+  case eCSSKeyword_contrast:
+    return nsStyleFilter::Type::Contrast;
+  case eCSSKeyword_drop_shadow:
+    return nsStyleFilter::Type::DropShadow;
+  case eCSSKeyword_grayscale:
+    return nsStyleFilter::Type::Grayscale;
+  case eCSSKeyword_hue_rotate:
+    return nsStyleFilter::Type::HueRotate;
+  case eCSSKeyword_invert:
+    return nsStyleFilter::Type::Invert;
+  case eCSSKeyword_opacity:
+    return nsStyleFilter::Type::Opacity;
+  case eCSSKeyword_saturate:
+    return nsStyleFilter::Type::Saturate;
+  case eCSSKeyword_sepia:
+    return nsStyleFilter::Type::Sepia;
+  default:
+    MOZ_NOT_REACHED("Unknown filter type.");
+  }
+}
+
+static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem)
+{
+  nsStyleFilter styleFilter;
+
+  nsCSSUnit unit = curElem.GetUnit();
+  if (unit == eCSSUnit_URL) {
+    styleFilter.mType = nsStyleFilter::Type::URL;
+    styleFilter.mUrl = curElem.GetURLValue();
+    return styleFilter;
+  }
+
+  NS_ABORT_IF_FALSE(unit == eCSSUnit_Function, "unrecognized filter type");
+
+  nsCSSValue::Array* filterFunction = curElem.GetArrayValue();
+  nsCSSKeyword keyword = (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
+  styleFilter.mType = StyleFilterTypeForKeyword(keyword);
+  if (styleFilter.mType != nsStyleFilter::Type::DropShadow) {
+    NS_ABORT_IF_FALSE(filterFunction->Count() == 2, 
+                      "filter function has wrong number of args");
+    nsCSSValue& arg = filterFunction->Item(1);
+    const nsStyleCoord dummyParentCoord;
+    nsStyleContext* dummyStyleContext = nullptr;
+    nsPresContext* dummyPresContext = nullptr;
+    bool dummyCanStoreInRuleTree = true;
+    // FIXME(krit,mvujovic): Handle calc, angles.
+    // FIXME(krit,mvujovic): Make sure we don't have to handle inherit.
+    int32_t mask = SETCOORD_LP;
+    // FIXME(krit,mvujovic): We get an unused variable warning for "success".
+    bool success = SetCoord(arg, styleFilter.mValue, dummyParentCoord, mask, 
+                            dummyStyleContext, dummyPresContext,
+                            dummyCanStoreInRuleTree);
+    NS_ABORT_IF_FALSE(success, "could not set filter function argument");
+  } else {
+    // FIXME(krit, mvujovic): Handle drop shadow.
+  }
+
+  return styleFilter;
+}
+
 const void*
 nsRuleNode::ComputeSVGResetData(void* aStartStruct,
                                 const nsRuleData* aRuleData,
@@ -7781,16 +7848,25 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
               parentSVGReset->mVectorEffect,
               NS_STYLE_VECTOR_EFFECT_NONE, 0, 0, 0, 0);
 
+  // FIXME(krit,mvujovic): Update this comment.
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
-  if (eCSSUnit_URL == filterValue->GetUnit()) {
-    svgReset->mFilter = filterValue->GetURLValue();
-  } else if (eCSSUnit_None == filterValue->GetUnit() ||
-             eCSSUnit_Initial == filterValue->GetUnit()) {
-    svgReset->mFilter = nullptr;
-  } else if (eCSSUnit_Inherit == filterValue->GetUnit()) {
+  switch(filterValue->GetUnit()) {
+  case eCSSUnit_Inherit:
     canStoreInRuleTree = false;
     svgReset->mFilter = parentSVGReset->mFilter;
+    break;
+  case eCSSUnit_List:
+  case eCSSUnit_ListDep:
+    for (const nsCSSValueList* curList = filterValue->GetListValue(); curList; curList = curList->mNext) {
+      const nsCSSValue& curValue = curList->mValue;
+      // FIXME(krit,mvujovic): We copy the nsStyleFilter struct a lot. Is this all right?
+      nsStyleFilter styleFilter = CreateStyleFilter(curValue);
+      svgReset->mFilter.AppendElement(styleFilter);
+    }
+    break;
+  default:
+    NS_ABORT_IF_FALSE(false, "unrecognized filter unit");
   }
 
   // mask: url, none, inherit

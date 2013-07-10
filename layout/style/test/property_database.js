@@ -3510,8 +3510,12 @@ var gCSSProperties = {
 		inherited: false,
 		type: CSS_TYPE_LONGHAND,
 		initial_values: [ "none" ],
-		other_values: [ "url(#myfilt)" ],
-		invalid_values: [ "url(#myfilt) none" ]
+		other_values: [ 
+			"url(#myfilt)"
+		],
+		invalid_values: [
+			"url(#myfilt) none"
+		]
 	},
 	"flood-color": {
 		domProp: "floodColor",
