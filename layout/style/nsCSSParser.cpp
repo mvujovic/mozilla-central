@@ -10006,29 +10006,6 @@ static bool GetFunctionParseInformation(nsCSSKeyword aToken,
     aMinElems = 1U;
     aMaxElems = 1U;
     break;
-  // FIXME(krit,mvujovic): We should do this elsewhere so that filters don't support transforms and vice-versa.
-  /* Filter functions */
-  case eCSSKeyword_blur:
-    variantIndex = eLengthCalc;
-    aMinElems = 1U;
-    aMaxElems = 1U;
-    break;
-  case eCSSKeyword_hue_rotate:
-    variantIndex = eAngle;
-    aMinElems = 1U;
-    aMaxElems = 1U;
-    break;
-  case eCSSKeyword_grayscale:
-  case eCSSKeyword_brightness:
-  case eCSSKeyword_contrast:
-  case eCSSKeyword_invert:
-  case eCSSKeyword_opacity:
-  case eCSSKeyword_saturate:
-  case eCSSKeyword_sepia:
-    variantIndex = eNumberPercentCalc;
-    aMinElems = 1U;
-    aMaxElems = 1U;
-    break;
   default:
     /* Oh dear, we didn't match.  Report an error. */
     return false;
@@ -10090,16 +10067,33 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     return false;
   }
 
+  int32_t variantMask;
   nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
-  if (keyword == eCSSKeyword_drop_shadow)
+  switch(keyword) {
+  case eCSSKeyword_drop_shadow:
     return ParseShadowItem(aValue, false);
-
-  const int32_t* variantMask;
-  uint16_t minElems, maxElems;
-  if (!GetFunctionParseInformation(keyword, false, minElems, maxElems, variantMask))
+  case eCSSKeyword_blur:
+    variantMask = VARIANT_LENGTH | VARIANT_CALC;
+    break;
+  case eCSSKeyword_hue_rotate:
+    variantMask = VARIANT_ANGLE_OR_ZERO;
+    break;
+  case eCSSKeyword_grayscale:
+  case eCSSKeyword_brightness:
+  case eCSSKeyword_contrast:
+  case eCSSKeyword_invert:
+  case eCSSKeyword_opacity:
+  case eCSSKeyword_saturate:
+  case eCSSKeyword_sepia:
+    variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
+    break;
+  default:
     return false;
+  }
 
-  return ParseFunction(keyword, variantMask, 0, minElems, maxElems, aValue);  
+  uint16_t minElems = 1U;
+  uint16_t maxElems = 1U;
+  return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
 }
 
 bool CSSParserImpl::ParseFilter()
