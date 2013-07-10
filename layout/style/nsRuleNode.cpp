@@ -7751,7 +7751,9 @@ static nsStyleFilter::Type StyleFilterTypeForKeyword(nsCSSKeyword keyword)
   }
 }
 
-static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem)
+static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem,
+                                       nsStyleContext* aContext, 
+                                       nsPresContext* aPresContext)
 {
   nsStyleFilter styleFilter;
 
@@ -7761,8 +7763,6 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem)
     styleFilter.mUrl = curElem.GetURLValue();
     return styleFilter;
   }
-
-  fprintf(stderr, "CreateStyleFilter %d\n", unit);
 
   NS_ABORT_IF_FALSE(unit == eCSSUnit_Function, "unrecognized filter type");
 
@@ -7774,8 +7774,6 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem)
                       "filter function has wrong number of args");
     nsCSSValue& arg = filterFunction->Item(1);
     const nsStyleCoord dummyParentCoord;
-    nsStyleContext* dummyStyleContext = nullptr;
-    nsPresContext* dummyPresContext = nullptr;
     bool dummyCanStoreInRuleTree = true;
     // FIXME(krit,mvujovic): Check that we handle calc, angles correctly
     // FIXME(krit,mvujovic): Make sure we don't have to handle inherit.
@@ -7785,8 +7783,8 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem)
     else
       mask |= SETCOORD_ANGLE;
     // FIXME(krit,mvujovic): We get an unused variable warning for "success".
-    bool success = SetCoord(arg, styleFilter.mValue, dummyParentCoord, mask, 
-                            dummyStyleContext, dummyPresContext,
+    // FIXME(krit,mvujovic): Figure out what dummyCanStoreInRuleTree actually does.
+    bool success = SetCoord(arg, styleFilter.mValue, dummyParentCoord, mask, aContext, aPresContext,
                             dummyCanStoreInRuleTree);
     NS_ABORT_IF_FALSE(success, "could not set filter function argument");
   } else {
@@ -7893,7 +7891,7 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
       if (curValue.GetUnit() == eCSSUnit_Null)
         break;
       // FIXME(krit,mvujovic): We copy the nsStyleFilter struct a lot. Is this all right?
-      nsStyleFilter styleFilter = CreateStyleFilter(curValue);
+      nsStyleFilter styleFilter = CreateStyleFilter(curValue, aContext, mPresContext);
       svgReset->mFilter.AppendElement(styleFilter);
     }
     break;
