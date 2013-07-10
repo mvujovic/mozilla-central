@@ -7762,6 +7762,8 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem)
     return styleFilter;
   }
 
+  fprintf(stderr, "CreateStyleFilter %d\n", unit);
+
   NS_ABORT_IF_FALSE(unit == eCSSUnit_Function, "unrecognized filter type");
 
   nsCSSValue::Array* filterFunction = curElem.GetArrayValue();
@@ -7872,14 +7874,24 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
   switch(filterValue->GetUnit()) {
+  case eCSSUnit_Null:
+  case eCSSUnit_None:
+  case eCSSUnit_Initial:
+    // Intially, the filter property is just an empty list.
+    break;
   case eCSSUnit_Inherit:
     canStoreInRuleTree = false;
     svgReset->mFilter = parentSVGReset->mFilter;
     break;
   case eCSSUnit_List:
   case eCSSUnit_ListDep:
-    for (const nsCSSValueList* curList = filterValue->GetListValue(); curList; curList = curList->mNext) {
+    for (const nsCSSValueList* curList = filterValue->GetListValue(); 
+         curList;
+         curList = curList->mNext) {
       const nsCSSValue& curValue = curList->mValue;
+      // FIXME(krit,mvujovic): Why do we have a list with a null element?
+      if (curValue.GetUnit() == eCSSUnit_Null)
+        break;
       // FIXME(krit,mvujovic): We copy the nsStyleFilter struct a lot. Is this all right?
       nsStyleFilter styleFilter = CreateStyleFilter(curValue);
       svgReset->mFilter.AppendElement(styleFilter);

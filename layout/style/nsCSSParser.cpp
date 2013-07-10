@@ -10006,6 +10006,7 @@ static bool GetFunctionParseInformation(nsCSSKeyword aToken,
     aMinElems = 1U;
     aMaxElems = 1U;
     break;
+  // FIXME(krit,mvujovic): We should do this elsewhere so that filters don't support transforms and vice-versa.
   /* Filter functions */
   case eCSSKeyword_blur:
     variantIndex = eLengthCalc;
