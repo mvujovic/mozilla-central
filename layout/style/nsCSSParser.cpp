@@ -10067,33 +10067,33 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     return false;
   }
 
-  int32_t variantMask;
+  uint16_t minElems = 1U;
+  uint16_t maxElems = 1U;
   nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
   switch(keyword) {
   case eCSSKeyword_drop_shadow:
     return ParseShadowItem(aValue, false);
-  case eCSSKeyword_blur:
-    variantMask = VARIANT_LENGTH | VARIANT_CALC;
-    break;
-  case eCSSKeyword_hue_rotate:
-    variantMask = VARIANT_ANGLE_OR_ZERO;
-    break;
+  case eCSSKeyword_blur: {
+    int32_t variantMask = VARIANT_LENGTH | VARIANT_CALC;
+    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
+  }
+  case eCSSKeyword_hue_rotate: {
+    int32_t variantMask = VARIANT_ANGLE_OR_ZERO | VARIANT_CALC;
+    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
+  }
   case eCSSKeyword_grayscale:
   case eCSSKeyword_brightness:
   case eCSSKeyword_contrast:
   case eCSSKeyword_invert:
   case eCSSKeyword_opacity:
   case eCSSKeyword_saturate:
-  case eCSSKeyword_sepia:
-    variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
-    break;
+  case eCSSKeyword_sepia: {
+    int32_t variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
+    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
+  }
   default:
     return false;
   }
-
-  uint16_t minElems = 1U;
-  uint16_t maxElems = 1U;
-  return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
 }
 
 bool CSSParserImpl::ParseFilter()
