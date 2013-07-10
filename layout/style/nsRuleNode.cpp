@@ -653,6 +653,7 @@ GetFloatFromBoxPosition(int32_t aEnumValue)
 #define SETCOORD_CALC_CLAMP_NONNEGATIVE 0x00040000 // modifier for CALC_LENGTH_ONLY
 #define SETCOORD_STORE_CALC             0x00080000
 #define SETCOORD_BOX_POSITION           0x00100000 // exclusive with _ENUMERATED
+#define SETCOORD_ANGLE                  0x00200000
 
 #define SETCOORD_LP     (SETCOORD_LENGTH | SETCOORD_PERCENT)
 #define SETCOORD_LH     (SETCOORD_LENGTH | SETCOORD_INHERIT)
@@ -764,6 +765,19 @@ static bool SetCoord(const nsCSSValue& aValue, nsStyleCoord& aCoord,
     else {
       result = false;  // didn't set anything
     }
+  }
+  else if ((aMask & SETCOORD_ANGLE) != 0 &&
+           (aValue.IsAngularUnit())) {
+    nsStyleUnit unit;
+    switch (aValue.GetUnit()) {
+    case eCSSUnit_Degree: unit = eStyleUnit_Degree; break;
+    case eCSSUnit_Grad:   unit = eStyleUnit_Grad; break;
+    case eCSSUnit_Radian: unit = eStyleUnit_Radian; break;
+    case eCSSUnit_Turn:   unit = eStyleUnit_Turn; break;
+    default: NS_NOTREACHED("unrecognized angular unit");
+      unit = eStyleUnit_Degree;
+    }
+    aCoord.SetAngleValue(aValue.GetAngleValue(), unit);
   }
   else {
     result = false;  // didn't set anything
@@ -988,6 +1002,7 @@ static void SetGradient(const nsCSSValue& aValue, nsPresContext* aPresContext,
 
   // angle
   if (gradient->mAngle.IsAngularUnit()) {
+    // FIXME(krit,mvujovic): Factor this into a call to SetCoord, since SetCoord supports angles now.
     nsStyleUnit unit;
     switch (gradient->mAngle.GetUnit()) {
     case eCSSUnit_Degree: unit = eStyleUnit_Degree; break;
@@ -7731,7 +7746,8 @@ static nsStyleFilter::Type StyleFilterTypeForKeyword(nsCSSKeyword keyword)
   case eCSSKeyword_sepia:
     return nsStyleFilter::Type::Sepia;
   default:
-    MOZ_NOT_REACHED("Unknown filter type.");
+    NS_NOTREACHED("Unknown filter type.");
+    return nsStyleFilter::Type::Null;
   }
 }
 
@@ -7759,9 +7775,13 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem)
     nsStyleContext* dummyStyleContext = nullptr;
     nsPresContext* dummyPresContext = nullptr;
     bool dummyCanStoreInRuleTree = true;
-    // FIXME(krit,mvujovic): Handle calc, angles.
+    // FIXME(krit,mvujovic): Check that we handle calc, angles correctly
     // FIXME(krit,mvujovic): Make sure we don't have to handle inherit.
-    int32_t mask = SETCOORD_LP;
+    int32_t mask = SETCOORD_STORE_CALC;
+    if (styleFilter.mType != nsStyleFilter::Type::HueRotate)
+      mask |= SETCOORD_LP;
+    else
+      mask |= SETCOORD_ANGLE;
     // FIXME(krit,mvujovic): We get an unused variable warning for "success".
     bool success = SetCoord(arg, styleFilter.mValue, dummyParentCoord, mask, 
                             dummyStyleContext, dummyPresContext,
