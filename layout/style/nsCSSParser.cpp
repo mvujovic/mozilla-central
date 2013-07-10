@@ -10092,6 +10092,7 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
   }
   default:
+    UngetToken();
     return false;
   }
 }

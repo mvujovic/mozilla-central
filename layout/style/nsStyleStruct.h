@@ -2258,6 +2258,7 @@ struct nsStyleSVG {
   bool mStrokeWidthFromObject       : 1;
 };
 
+// FIXME(krit,mvujovic): Rename this to nsStyleFilterFunction or something?
 struct nsStyleFilter {
   // FIXME(krit,mvujovic): Should we override new operator?
   nsStyleFilter();
