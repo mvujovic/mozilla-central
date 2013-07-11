@@ -3747,7 +3747,70 @@ inline uint32_t ListLength(const T* aList)
   return len;
 }
 
+static nsCSSShadowItem
+GetShadowItemData(const nsCSSValue& aValue,
+                  nsStyleContext* aContext,
+                  nsPresContext* aPresContext,
+                  bool aIsBoxShadow,
+                  bool& canStoreInRuleTree)
+{
+  nsCSSShadowItem item;
+  nsStyleCoord tempCoord;
+  nsCSSValue::Array *arr = aValue.GetArrayValue();
+  // OK to pass bad aParentCoord since we're not passing SETCOORD_INHERIT
+  DebugOnly<bool> unitOK = SetCoord(arr->Item(0), tempCoord, nsStyleCoord(),
+                    SETCOORD_LENGTH | SETCOORD_CALC_LENGTH_ONLY,
+                    aContext, aPresContext, canStoreInRuleTree);
+  NS_ASSERTION(unitOK, "unexpected unit");
+  item.mXOffset = tempCoord.GetCoordValue();
 
+  unitOK = SetCoord(arr->Item(1), tempCoord, nsStyleCoord(),
+                    SETCOORD_LENGTH | SETCOORD_CALC_LENGTH_ONLY,
+                    aContext, aPresContext, canStoreInRuleTree);
+  NS_ASSERTION(unitOK, "unexpected unit");
+  item.mYOffset = tempCoord.GetCoordValue();
+
+  // Blur radius is optional in the current box-shadow spec
+  if (arr->Item(2).GetUnit() != eCSSUnit_Null) {
+    unitOK = SetCoord(arr->Item(2), tempCoord, nsStyleCoord(),
+                      SETCOORD_LENGTH | SETCOORD_CALC_LENGTH_ONLY |
+                        SETCOORD_CALC_CLAMP_NONNEGATIVE,
+                      aContext, aPresContext, canStoreInRuleTree);
+    NS_ASSERTION(unitOK, "unexpected unit");
+    item.mRadius = tempCoord.GetCoordValue();
+  } else {
+    item.mRadius = 0;
+  }
+
+  // Find the spread radius
+  if (aIsBoxShadow && arr->Item(3).GetUnit() != eCSSUnit_Null) {
+    unitOK = SetCoord(arr->Item(3), tempCoord, nsStyleCoord(),
+                      SETCOORD_LENGTH | SETCOORD_CALC_LENGTH_ONLY,
+                      aContext, aPresContext, canStoreInRuleTree);
+    NS_ASSERTION(unitOK, "unexpected unit");
+    item.mSpread = tempCoord.GetCoordValue();
+  } else {
+    item.mSpread = 0;
+  }
+
+  if (arr->Item(4).GetUnit() != eCSSUnit_Null) {
+    item.mHasColor = true;
+    // 2nd argument can be bogus since inherit is not a valid color
+    unitOK = SetColor(arr->Item(4), 0, aPresContext, aContext, item.mColor,
+                      canStoreInRuleTree);
+    NS_ASSERTION(unitOK, "unexpected unit");
+  }
+
+  if (aIsBoxShadow && arr->Item(5).GetUnit() == eCSSUnit_Enumerated) {
+    NS_ASSERTION(arr->Item(5).GetIntValue() == NS_STYLE_BOX_SHADOW_INSET,
+                 "invalid keyword type for box shadow");
+    item.mInset = true;
+  } else {
+    item.mInset = false;
+  }
+
+  return item;
+}
 
 already_AddRefed<nsCSSShadowArray>
 nsRuleNode::GetShadowData(const nsCSSValueList* aList,
@@ -7786,7 +7849,7 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem,
                             aCanStoreInRuleTree);
     NS_ABORT_IF_FALSE(success, "could not set filter function argument");
   } else {
-    // FIXME(krit, mvujovic): Handle drop shadow.
+    styleFilter.mShadow = GetShadowItemData(curElem, aContext, aPresContext, false, aCanStoreInRuleTree);
   }
 
   return styleFilter;
