@@ -7874,6 +7874,7 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
   case eCSSUnit_None:
   case eCSSUnit_Initial:
     // Intially, the filter property is just an empty list.
+    svgReset->mFilter.Clear();
     break;
   case eCSSUnit_Inherit:
     canStoreInRuleTree = false;
