@@ -10054,15 +10054,16 @@ CSSParserImpl::ParseSingleTransform(bool aIsPrefixed, nsCSSValue& aValue)
 
 bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
 {
-  if (!GetToken(true))
-    return false;
-
   if(mToken.mType == eCSSToken_URL) {
-    ParseVariant(aValue, VARIANT_URL, nullptr);
-    return true;
+    return ParseVariant(aValue, VARIANT_URL, nullptr);
+  }
+
+  if (!GetToken(true)) {
+    return false;
   }
 
   if (mToken.mType != eCSSToken_Function) {
+    // FIXME(krit,mvujovic): Do we really need to unget?
     UngetToken();
     return false;
   }
@@ -10092,6 +10093,7 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
   }
   default:
+    // FIXME(krit,mvujovic): Do we really need to unget?
     UngetToken();
     return false;
   }

@@ -2303,8 +2303,8 @@ struct nsStyleSVGReset {
 
   // Before, we only supported a single filter url. Moving forward, we will support multiple filter
   // urls and CSS filter functions.
-  nsIURI* DeprecatedFilter() const { 
-    return mFilter.Length() == 1 && mFilter[0].mType == nsStyleFilter::Type::URL ?
+  nsIURI* DeprecatedFilter() const {
+    return (mFilter.Length() == 1 && mFilter[0].mType == nsStyleFilter::Type::URL) ?
            mFilter[0].mUrl : nullptr;
   }
 

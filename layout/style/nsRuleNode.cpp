@@ -7753,7 +7753,8 @@ static nsStyleFilter::Type StyleFilterTypeForKeyword(nsCSSKeyword keyword)
 
 static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem,
                                        nsStyleContext* aContext, 
-                                       nsPresContext* aPresContext)
+                                       nsPresContext* aPresContext,
+                                       bool aCanStoreInRuleTree)
 {
   nsStyleFilter styleFilter;
 
@@ -7773,19 +7774,16 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem,
     NS_ABORT_IF_FALSE(filterFunction->Count() == 2, 
                       "filter function has wrong number of args");
     nsCSSValue& arg = filterFunction->Item(1);
-    const nsStyleCoord dummyParentCoord;
-    bool dummyCanStoreInRuleTree = true;
     // FIXME(krit,mvujovic): Check that we handle calc, angles correctly
-    // FIXME(krit,mvujovic): Make sure we don't have to handle inherit.
     int32_t mask = SETCOORD_STORE_CALC;
-    if (styleFilter.mType != nsStyleFilter::Type::HueRotate)
-      mask |= SETCOORD_LP;
-    else
+    if (styleFilter.mType == nsStyleFilter::Type::HueRotate)
       mask |= SETCOORD_ANGLE;
+    else
+      mask |= SETCOORD_LP;
     // FIXME(krit,mvujovic): We get an unused variable warning for "success".
-    // FIXME(krit,mvujovic): Figure out what dummyCanStoreInRuleTree actually does.
+    const nsStyleCoord dummyParentCoord;
     bool success = SetCoord(arg, styleFilter.mValue, dummyParentCoord, mask, aContext, aPresContext,
-                            dummyCanStoreInRuleTree);
+                            aCanStoreInRuleTree);
     NS_ABORT_IF_FALSE(success, "could not set filter function argument");
   } else {
     // FIXME(krit, mvujovic): Handle drop shadow.
@@ -7888,10 +7886,13 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
          curList = curList->mNext) {
       const nsCSSValue& curValue = curList->mValue;
       // FIXME(krit,mvujovic): Why do we have a list with a null element?
-      if (curValue.GetUnit() == eCSSUnit_Null)
+      if (curValue.GetUnit() == eCSSUnit_Null) {
+        fprintf(stderr, "Oh no!\n");
         break;
+      }
       // FIXME(krit,mvujovic): We copy the nsStyleFilter struct a lot. Is this all right?
-      nsStyleFilter styleFilter = CreateStyleFilter(curValue, aContext, mPresContext);
+      nsStyleFilter styleFilter = CreateStyleFilter(curValue, aContext, mPresContext,
+                                                    canStoreInRuleTree);
       svgReset->mFilter.AppendElement(styleFilter);
     }
     break;
