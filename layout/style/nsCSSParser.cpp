@@ -10089,7 +10089,7 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
   case eCSSKeyword_opacity:
   case eCSSKeyword_saturate:
   case eCSSKeyword_sepia: {
-    int32_t variantMask = VARIANT_NUMBER | VARIANT_PERCENT;
+    int32_t variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
     return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
   }
   default:
