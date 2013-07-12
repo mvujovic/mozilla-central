@@ -4471,17 +4471,112 @@ nsComputedDOMStyle::DoGetClipPath()
 CSSValue*
 nsComputedDOMStyle::DoGetFilter()
 {
-  nsROCSSPrimitiveValue* val = new nsROCSSPrimitiveValue;
-
   const nsStyleSVGReset* svg = StyleSVGReset();
 
-  // FIXME(krit,mvujovic): Handle CSS filters and multiple SVG reference filters.
+  // FIXME(krit,mvujovic): Keep this code for now to avoid that Max freaks
+  // out when he debugs.
+  nsROCSSPrimitiveValue* val = new nsROCSSPrimitiveValue;
   if (svg->DeprecatedFilter())
     val->SetURI(svg->DeprecatedFilter());
   else
     val->SetIdent(eCSSKeyword_none);
-
   return val;
+
+  // FIXME(krit,mvujovic): New code. Will replace the lines before.
+  if (!svg->mFilter.Length()) {
+    // nsROCSSPrimitiveValue* val = new nsROCSSPrimitiveValue;
+    val->SetIdent(eCSSKeyword_none);
+    return val;
+  }
+
+  nsDOMCSSValueList *valueList = GetROCSSValueList(false);
+  bool filterChainValid = false;
+  for (uint32_t i = 0; i < svg->mFilter.Length(); i++) {
+    nsROCSSPrimitiveValue *filterFunction = new nsROCSSPrimitiveValue;
+    // Refuse invalid url() functions but keep valid filter functions.
+    if (svg->mFilter[i].mType == nsStyleFilter::Type::URL) {
+      if (svg->mFilter[i].mUrl) {
+        valueList->AppendCSSValue(filterFunction);
+        filterFunction->SetURI(svg->mFilter[i].mUrl);
+        filterChainValid = true;
+      } else {
+        delete filterFunction;
+      }
+      continue;
+    }
+    valueList->AppendCSSValue(filterFunction);
+    filterChainValid = true;
+    nsAutoString filterFunctionString;
+    switch (svg->mFilter[i].mType) {
+    case nsStyleFilter::Type::Blur:
+      filterFunctionString.AppendLiteral("blur(");
+      break;
+    case nsStyleFilter::Type::Brightness:
+      filterFunctionString.AppendLiteral("brightness(");
+      break;
+    case nsStyleFilter::Type::Contrast:
+      filterFunctionString.AppendLiteral("contrast(");
+      break;
+    case nsStyleFilter::Type::DropShadow:
+      filterFunctionString.AppendLiteral("drop-shadow(");
+      break;
+    case nsStyleFilter::Type::Grayscale:
+      filterFunctionString.AppendLiteral("grayscale(");
+      break;
+    case nsStyleFilter::Type::HueRotate:
+      filterFunctionString.AppendLiteral("hue-rotate(");
+      break;
+    case nsStyleFilter::Type::Invert:
+      filterFunctionString.AppendLiteral("invert(");
+      break;
+    case nsStyleFilter::Type::Opacity:
+      filterFunctionString.AppendLiteral("opacity(");
+      break;
+    case nsStyleFilter::Type::Saturate:
+      filterFunctionString.AppendLiteral("saturate(");
+      break;
+    case nsStyleFilter::Type::Sepia:
+      filterFunctionString.AppendLiteral("sepia(");
+      break;
+    case nsStyleFilter::Type::URL:
+    case nsStyleFilter::Type::Null:
+      NS_NOTREACHED("null should not be a filter function value");
+    }
+    if (svg->mFilter[i].mType == nsStyleFilter::Type::DropShadow) {
+      // FIXME(krit,mvujovic): Reuse existing shadow code.
+    } else {
+      nsROCSSPrimitiveValue *tmpVal = new nsROCSSPrimitiveValue;
+      nsAutoString tokenString;
+      if (svg->mFilter[i].mValue.IsAngleValue()) {
+        // FIXME(krit,mvujovic): Share code with gradient code.
+        tmpVal->SetNumber(svg->mFilter[i].mValue.GetAngleValue());
+        tmpVal->GetCssText(tokenString);
+        filterFunctionString.Append(tokenString);
+        switch (svg->mFilter[i].mValue.GetUnit()) {
+        case eStyleUnit_Degree: filterFunctionString.AppendLiteral("deg"); break;
+        case eStyleUnit_Grad: filterFunctionString.AppendLiteral("grad"); break;
+        case eStyleUnit_Radian: filterFunctionString.AppendLiteral("rad"); break;
+        case eStyleUnit_Turn: filterFunctionString.AppendLiteral("turn"); break;
+        default: NS_NOTREACHED("unrecognized angle unit");
+        }
+      } else {
+        SetValueToCoord(tmpVal, svg->mFilter[i].mValue, true);
+        tmpVal->GetCssText(tokenString);
+        filterFunctionString.Append(tokenString);
+      }
+      delete tmpVal;
+    }
+    filterFunctionString.AppendLiteral(")");
+    filterFunction->SetString(filterFunctionString);
+  }
+  if (!filterChainValid) {
+    delete valueList;
+    // nsROCSSPrimitiveValue* val = new nsROCSSPrimitiveValue;
+    val->SetIdent(eCSSKeyword_none);
+    return val;
+  }
+
+  return valueList;
 }
 
 CSSValue*
