@@ -7828,6 +7828,7 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem,
     return styleFilter;
   }
 
+  // FIXME(krit,mvujovic): drop-shadow crashes here sometimes.
   NS_ABORT_IF_FALSE(unit == eCSSUnit_Function, "unrecognized filter type");
 
   nsCSSValue::Array* filterFunction = curElem.GetArrayValue();
@@ -7947,22 +7948,18 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
     svgReset->mFilter = parentSVGReset->mFilter;
     break;
   case eCSSUnit_List:
-  case eCSSUnit_ListDep:
-    for (const nsCSSValueList* curList = filterValue->GetListValue(); 
-         curList;
-         curList = curList->mNext) {
-      const nsCSSValue& curValue = curList->mValue;
-      // FIXME(krit,mvujovic): Why do we have a list with a null element?
-      if (curValue.GetUnit() == eCSSUnit_Null) {
-        fprintf(stderr, "Oh no!\n");
-        break;
-      }
-      // FIXME(krit,mvujovic): We copy the nsStyleFilter struct a lot. Is this all right?
-      nsStyleFilter styleFilter = CreateStyleFilter(curValue, aContext, mPresContext,
+  case eCSSUnit_ListDep: {
+    const nsCSSValueList *value = filterValue->GetListValue();
+    while (nullptr != value) {
+      // FIXME(krit,mvujovic): Avoid unnecessary copy operations.
+      nsStyleFilter styleFilter = CreateStyleFilter(value->mValue, aContext, mPresContext,
                                                     canStoreInRuleTree);
       svgReset->mFilter.AppendElement(styleFilter);
+      value = value->mNext;
     }
     break;
+  }
+
   default:
     NS_ABORT_IF_FALSE(false, "unrecognized filter unit");
   }
