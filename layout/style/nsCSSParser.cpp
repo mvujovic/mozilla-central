@@ -685,8 +685,9 @@ protected:
   /* Functions for transform-origin/perspective-origin Parsing */
   bool ParseTransformOrigin(bool aPerspective);
 
-  /* Function for filter parsing */
+  /* Functions for filter parsing */
   bool ParseFilter();
+  bool ParseSingleFilter(nsCSSValue& aValue);
 
   /* Find and return the namespace ID associated with aPrefix.
      If aPrefix has not been declared in an @namespace rule, returns
@@ -10051,6 +10052,49 @@ CSSParserImpl::ParseSingleTransform(bool aIsPrefixed, nsCSSValue& aValue)
   return ParseFunction(keyword, variantMask, 0, minElems, maxElems, aValue);
 }
 
+bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
+{
+  if (ParseVariant(aValue, VARIANT_URL, nullptr)) {
+    return true;
+  }
+
+  if (!GetToken(true)) {
+    return false;
+  }
+
+  if (mToken.mType != eCSSToken_Function) {
+    return false;
+  }
+
+  uint16_t minElems = 1U;
+  uint16_t maxElems = 1U;
+  nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
+  switch(keyword) {
+  case eCSSKeyword_drop_shadow:
+    return ParseShadowItem(aValue, false);
+  case eCSSKeyword_blur: {
+    int32_t variantMask = VARIANT_LENGTH | VARIANT_CALC;
+    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
+  }
+  case eCSSKeyword_hue_rotate: {
+    int32_t variantMask = VARIANT_ANGLE_OR_ZERO;
+    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
+  }
+  case eCSSKeyword_grayscale:
+  case eCSSKeyword_brightness:
+  case eCSSKeyword_contrast:
+  case eCSSKeyword_invert:
+  case eCSSKeyword_opacity:
+  case eCSSKeyword_saturate:
+  case eCSSKeyword_sepia: {
+    int32_t variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
+    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
+  }
+  default:
+    return false;
+  }
+}
+
 bool CSSParserImpl::ParseFilter()
 {
   nsCSSValue value;
@@ -10060,12 +10104,16 @@ bool CSSParserImpl::ParseFilter()
       return false;
     }
   } else {
-    nsCSSValueList* list = value.SetListValue();
-    if(mToken.mType == eCSSToken_URL) {
-      if(!ParseVariant(list->mValue, VARIANT_URL, nullptr))
+    nsCSSValueList* cur = value.SetListValue();
+    while (cur) {
+      if (!ParseSingleFilter(cur->mValue)) {
         return false;
-    } else {
-      return false;
+      }
+      if (CheckEndProperty()) {
+        break;
+      }
+      cur->mNext = new nsCSSValueList;
+      cur = cur->mNext;
     }
   }
   AppendValue(eCSSProperty_filter, value);
