@@ -7783,16 +7783,19 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
 
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
-  if (eCSSUnit_URL == filterValue->GetUnit()) {
-    // svgReset->mFilter = filterValue->GetURLValue();
-    svgReset->mFilter.Clear();
-    nsStyleFilter styleFilter;
-    styleFilter.mType = nsStyleFilter::Type::URL;
-    styleFilter.mUrl = filterValue->GetURLValue();
-    svgReset->mFilter.AppendElement(styleFilter);
+  if (eCSSUnit_List == filterValue->GetUnit() || eCSSUnit_ListDep == filterValue->GetUnit()) {
+    const nsCSSValueList* filterValueList = filterValue->GetListValue();
+    if (eCSSUnit_URL == filterValueList->mValue.GetUnit()) {
+      svgReset->mFilter.Clear();
+      nsStyleFilter styleFilter;
+      styleFilter.mType = nsStyleFilter::Type::URL;
+      styleFilter.mUrl = filterValueList->mValue.GetURLValue();
+      svgReset->mFilter.AppendElement(styleFilter);
+    } else {
+      NS_NOTREACHED("filter css value list should only have urls right now");
+    }
   } else if (eCSSUnit_None == filterValue->GetUnit() ||
              eCSSUnit_Initial == filterValue->GetUnit()) {
-    // svgReset->mFilter = nullptr;
     svgReset->mFilter.Clear();
   } else if (eCSSUnit_Inherit == filterValue->GetUnit()) {
     canStoreInRuleTree = false;

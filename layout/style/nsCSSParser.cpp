@@ -685,6 +685,9 @@ protected:
   /* Functions for transform-origin/perspective-origin Parsing */
   bool ParseTransformOrigin(bool aPerspective);
 
+  /* Function for filter parsing */
+  bool ParseFilter();
+
   /* Find and return the namespace ID associated with aPrefix.
      If aPrefix has not been declared in an @namespace rule, returns
      kNameSpaceID_Unknown. */
@@ -6551,6 +6554,8 @@ CSSParserImpl::ParsePropertyByFunction(nsCSSProperty aPropID)
     return ParseCounterData(aPropID);
   case eCSSProperty_cursor:
     return ParseCursor();
+  case eCSSProperty_filter:
+    return ParseFilter();
   case eCSSProperty_flex:
     return ParseFlex();
   case eCSSProperty_font:
@@ -10044,6 +10049,27 @@ CSSParserImpl::ParseSingleTransform(bool aIsPrefixed, nsCSSValue& aValue)
     return false;
 
   return ParseFunction(keyword, variantMask, 0, minElems, maxElems, aValue);
+}
+
+bool CSSParserImpl::ParseFilter()
+{
+  nsCSSValue value;
+  if (ParseVariant(value, VARIANT_INHERIT | VARIANT_NONE, nullptr)) {
+    // 'inherit', 'initial', and 'none' must be alone
+    if (!ExpectEndProperty()) {
+      return false;
+    }
+  } else {
+    nsCSSValueList* list = value.SetListValue();
+    if(mToken.mType == eCSSToken_URL) {
+      if(!ParseVariant(list->mValue, VARIANT_URL, nullptr))
+        return false;
+    } else {
+      return false;
+    }
+  }
+  AppendValue(eCSSProperty_filter, value);
+  return true;
 }
 
 /* Parses a transform property list by continuously reading in properties
