@@ -7707,6 +7707,51 @@ nsRuleNode::ComputeSVGData(void* aStartStruct,
   COMPUTE_END_INHERITED(SVG, svg)
 }
 
+static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
+                              const nsCSSValue& aValue,
+                              nsStyleContext* aContext, 
+                              nsPresContext* aPresContext,
+                              bool& aCanStoreInRuleTree)
+{
+  nsCSSUnit unit = aValue.GetUnit();
+  if (unit == eCSSUnit_URL) {
+    aStyleFilter.mType = nsStyleFilter::Type::URL;
+    aStyleFilter.mUrl = aValue.GetURLValue();
+    return aStyleFilter;
+  }
+
+  // FIXME(krit,mvujovic): drop-shadow crashes here sometimes.
+  NS_ABORT_IF_FALSE(unit == eCSSUnit_Function, "unrecognized filter type");
+
+  // FIXME(krit,mvujovic): Continue working here...
+  // nsCSSValue::Array* filterFunction = aValue.GetArrayValue();
+  // nsCSSKeyword keyword = (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
+  // styleFilter.mType = StyleFilterTypeForKeyword(keyword);
+  // if (styleFilter.mType != nsStyleFilter::Type::DropShadow) {
+  //   NS_ABORT_IF_FALSE(filterFunction->Count() == 2, 
+  //                     "filter function has wrong number of args");
+  //   nsCSSValue& arg = filterFunction->Item(1);
+  //   // FIXME(krit,mvujovic): Check that we handle calc, angles correctly
+  //   int32_t mask = 0;
+  //   if (styleFilter.mType == nsStyleFilter::Type::HueRotate) {
+  //     mask |= SETCOORD_ANGLE;
+  //   } else if (styleFilter.mType == nsStyleFilter::Type::Blur) {
+  //     mask |= (SETCOORD_LP | SETCOORD_STORE_CALC);
+  //   } else {
+  //     mask |= (SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC);
+  //   }
+  //   // FIXME(krit,mvujovic): We get an unused variable warning for "success".
+  //   const nsStyleCoord dummyParentCoord;
+  //   bool success = SetCoord(arg, styleFilter.mValue, dummyParentCoord, mask, aContext, aPresContext,
+  //                           aCanStoreInRuleTree);
+  //   NS_ABORT_IF_FALSE(success, "could not set filter function argument");
+  // } else {
+  //   styleFilter.mShadow = GetShadowItemData(curElem, aContext, aPresContext, false, aCanStoreInRuleTree);
+  // }
+
+  // return styleFilter;
+}
+
 const void*
 nsRuleNode::ComputeSVGResetData(void* aStartStruct,
                                 const nsRuleData* aRuleData,
@@ -7783,24 +7828,56 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
 
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
-  if (eCSSUnit_List == filterValue->GetUnit() || eCSSUnit_ListDep == filterValue->GetUnit()) {
-    const nsCSSValueList* filterValueList = filterValue->GetListValue();
-    if (eCSSUnit_URL == filterValueList->mValue.GetUnit()) {
+  switch(filterValue->GetUnit()) {
+  case eCSSUnit_None:
+  case eCSSUnit_Initial:
+    svgReset->mFilter.Clear();
+    break;
+  case eCSSUnit_Inherit:
+    canStoreInRuleTree = false;
+    svgReset->mFilter = parentSVGReset->mFilter;
+    break;
+  case eCSSUnit_List:
+  case eCSSUnit_ListDep:
+    svgReset->mFilter.Clear();
+    const nsCSSValueList* cur = filterValue->GetListValue();
+    while(cur) {
+      nsStyleFilter styleFilter;
+      CreateStyleFilter(styleFilter, cur->mValue, aContext, mPresContext, canStoreInRuleTree);
+      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::Null, "style filter should be set");
+      cur = cur->mNext;
+    }
+
+
+    if (eCSSUnit_URL == cur->mValue.GetUnit()) {
       svgReset->mFilter.Clear();
       nsStyleFilter styleFilter;
       styleFilter.mType = nsStyleFilter::Type::URL;
-      styleFilter.mUrl = filterValueList->mValue.GetURLValue();
+      styleFilter.mUrl = cur->mValue.GetURLValue();
       svgReset->mFilter.AppendElement(styleFilter);
     } else {
       NS_NOTREACHED("filter css value list should only have urls right now");
     }
-  } else if (eCSSUnit_None == filterValue->GetUnit() ||
-             eCSSUnit_Initial == filterValue->GetUnit()) {
-    svgReset->mFilter.Clear();
-  } else if (eCSSUnit_Inherit == filterValue->GetUnit()) {
-    canStoreInRuleTree = false;
-    svgReset->mFilter = parentSVGReset->mFilter;
   }
+  // const nsCSSValue* filterValue = aRuleData->ValueForFilter();
+  // if (eCSSUnit_List == filterValue->GetUnit() || eCSSUnit_ListDep == filterValue->GetUnit()) {
+  //   const nsCSSValueList* filterValueList = filterValue->GetListValue();
+  //   if (eCSSUnit_URL == filterValueList->mValue.GetUnit()) {
+  //     svgReset->mFilter.Clear();
+  //     nsStyleFilter styleFilter;
+  //     styleFilter.mType = nsStyleFilter::Type::URL;
+  //     styleFilter.mUrl = filterValueList->mValue.GetURLValue();
+  //     svgReset->mFilter.AppendElement(styleFilter);
+  //   } else {
+  //     NS_NOTREACHED("filter css value list should only have urls right now");
+  //   }
+  // } else if (eCSSUnit_None == filterValue->GetUnit() ||
+  //            eCSSUnit_Initial == filterValue->GetUnit()) {
+  //   svgReset->mFilter.Clear();
+  // } else if (eCSSUnit_Inherit == filterValue->GetUnit()) {
+  //   canStoreInRuleTree = false;
+  //   svgReset->mFilter = parentSVGReset->mFilter;
+  // }
 
   // mask: url, none, inherit
   const nsCSSValue* maskValue = aRuleData->ValueForMask();
