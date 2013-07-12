@@ -2258,6 +2258,36 @@ struct nsStyleSVG {
   bool mStrokeWidthFromObject       : 1;
 };
 
+// FIXME(krit,mvujovic): Rename this to nsStyleFilterFunction or something?
+struct nsStyleFilter {
+  // FIXME(krit,mvujovic): Should we override new operator?
+  nsStyleFilter();
+  nsStyleFilter(const nsStyleFilter& aSource);
+  ~nsStyleFilter();
+
+  enum Type {
+    Null,
+    URL,
+    Grayscale,
+    Saturate,
+    Sepia,
+    Invert,
+    Opacity,
+    Brightness,
+    Contrast,
+    HueRotate,
+    Blur,
+    DropShadow
+  };
+
+  Type mType;
+  union {
+    nsIURI *mUrl;
+    nsStyleCoord mValue;
+    nsCSSShadowItem mShadow;
+  };
+};
+
 struct nsStyleSVGReset {
   nsStyleSVGReset();
   nsStyleSVGReset(const nsStyleSVGReset& aSource);
@@ -2276,8 +2306,13 @@ struct nsStyleSVGReset {
     return NS_CombineHint(nsChangeHint_UpdateEffects, NS_STYLE_HINT_REFLOW);
   }
 
+  nsIURI* DeprecatedFilter() const {
+    return (mFilter.Length() == 1 && mFilter[0].mType == nsStyleFilter::Type::URL) ?
+           mFilter[0].mUrl : nullptr;
+  }
+
   nsCOMPtr<nsIURI> mClipPath;         // [reset]
-  nsCOMPtr<nsIURI> mFilter;           // [reset]
+  nsTArray<nsStyleFilter> mFilter;           // [reset]
   nsCOMPtr<nsIURI> mMask;             // [reset]
   nscolor          mStopColor;        // [reset]
   nscolor          mFloodColor;       // [reset]

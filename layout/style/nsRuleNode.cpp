@@ -7784,10 +7784,16 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
   if (eCSSUnit_URL == filterValue->GetUnit()) {
-    svgReset->mFilter = filterValue->GetURLValue();
+    // svgReset->mFilter = filterValue->GetURLValue();
+    svgReset->mFilter.Clear();
+    nsStyleFilter styleFilter;
+    styleFilter.mType = nsStyleFilter::Type::URL;
+    styleFilter.mUrl = filterValue->GetURLValue();
+    svgReset->mFilter.AppendElement(styleFilter);
   } else if (eCSSUnit_None == filterValue->GetUnit() ||
              eCSSUnit_Initial == filterValue->GetUnit()) {
-    svgReset->mFilter = nullptr;
+    // svgReset->mFilter = nullptr;
+    svgReset->mFilter.Clear();
   } else if (eCSSUnit_Inherit == filterValue->GetUnit()) {
     canStoreInRuleTree = false;
     svgReset->mFilter = parentSVGReset->mFilter;

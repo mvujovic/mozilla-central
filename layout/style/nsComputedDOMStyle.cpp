@@ -4475,8 +4475,8 @@ nsComputedDOMStyle::DoGetFilter()
 
   const nsStyleSVGReset* svg = StyleSVGReset();
 
-  if (svg->mFilter)
-    val->SetURI(svg->mFilter);
+  if (svg->DeprecatedFilter())
+    val->SetURI(svg->DeprecatedFilter());
   else
     val->SetIdent(eCSSKeyword_none);
 

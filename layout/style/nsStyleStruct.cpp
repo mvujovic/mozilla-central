@@ -1001,6 +1001,33 @@ nsChangeHint nsStyleSVG::CalcDifference(const nsStyleSVG& aOther) const
 }
 
 // --------------------
+// nsStyleFilter
+//
+nsStyleFilter::nsStyleFilter()
+  : mType(Null)
+{
+  MOZ_COUNT_CTOR(nsStyleFilter);
+}
+
+nsStyleFilter::nsStyleFilter(const nsStyleFilter& aSource)
+  : mType(aSource.mType)
+{
+  MOZ_COUNT_CTOR(nsStyleFilter);
+
+  if (mType == URL)
+    mUrl = aSource.mUrl;
+  else if (mType == DropShadow)
+    mShadow = aSource.mShadow;
+  else if (mType != Null)
+    mValue = aSource.mValue;
+}
+
+nsStyleFilter::~nsStyleFilter()
+{
+  MOZ_COUNT_DTOR(nsStyleFilter);
+}
+
+// --------------------
 // nsStyleSVGReset
 //
 nsStyleSVGReset::nsStyleSVGReset() 
@@ -1010,7 +1037,6 @@ nsStyleSVGReset::nsStyleSVGReset()
     mFloodColor              = NS_RGB(0,0,0);
     mLightingColor           = NS_RGB(255,255,255);
     mClipPath                = nullptr;
-    mFilter                  = nullptr;
     mMask                    = nullptr;
     mStopOpacity             = 1.0f;
     mFloodOpacity            = 1.0f;
@@ -1045,7 +1071,7 @@ nsChangeHint nsStyleSVGReset::CalcDifference(const nsStyleSVGReset& aOther) cons
   nsChangeHint hint = nsChangeHint(0);
 
   if (!EqualURIs(mClipPath, aOther.mClipPath) ||
-      !EqualURIs(mFilter, aOther.mFilter)     ||
+      !EqualURIs(DeprecatedFilter(), aOther.DeprecatedFilter())     ||
       !EqualURIs(mMask, aOther.mMask)) {
     NS_UpdateHint(hint, nsChangeHint_UpdateEffects);
     NS_UpdateHint(hint, nsChangeHint_RepaintFrame);
