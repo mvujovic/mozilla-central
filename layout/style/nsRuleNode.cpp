@@ -7838,11 +7838,14 @@ static nsStyleFilter CreateStyleFilter(const nsCSSValue& curElem,
                       "filter function has wrong number of args");
     nsCSSValue& arg = filterFunction->Item(1);
     // FIXME(krit,mvujovic): Check that we handle calc, angles correctly
-    int32_t mask = SETCOORD_STORE_CALC;
-    if (styleFilter.mType == nsStyleFilter::Type::HueRotate)
+    int32_t mask = 0;
+    if (styleFilter.mType == nsStyleFilter::Type::HueRotate) {
       mask |= SETCOORD_ANGLE;
-    else
-      mask |= SETCOORD_LP;
+    } else if (styleFilter.mType == nsStyleFilter::Type::Blur) {
+      mask |= (SETCOORD_LP | SETCOORD_STORE_CALC);
+    } else {
+      mask |= (SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC);
+    }
     // FIXME(krit,mvujovic): We get an unused variable warning for "success".
     const nsStyleCoord dummyParentCoord;
     bool success = SetCoord(arg, styleFilter.mValue, dummyParentCoord, mask, aContext, aPresContext,

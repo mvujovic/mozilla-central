@@ -10079,7 +10079,7 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
   }
   case eCSSKeyword_hue_rotate: {
-    int32_t variantMask = VARIANT_ANGLE_OR_ZERO | VARIANT_CALC;
+    int32_t variantMask = VARIANT_ANGLE_OR_ZERO;
     return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
   }
   case eCSSKeyword_grayscale:
@@ -10089,7 +10089,7 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
   case eCSSKeyword_opacity:
   case eCSSKeyword_saturate:
   case eCSSKeyword_sepia: {
-    int32_t variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
+    int32_t variantMask = VARIANT_NUMBER | VARIANT_PERCENT;
     return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
   }
   default:
