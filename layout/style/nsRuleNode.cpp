@@ -7717,7 +7717,7 @@ static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
   if (unit == eCSSUnit_URL) {
     aStyleFilter.mType = nsStyleFilter::Type::URL;
     aStyleFilter.mUrl = aValue.GetURLValue();
-    return aStyleFilter;
+    return;
   }
 
   // FIXME(krit,mvujovic): drop-shadow crashes here sometimes.
@@ -7829,6 +7829,9 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
   switch(filterValue->GetUnit()) {
+  case eCSSUnit_Null:
+    break;
+
   case eCSSUnit_None:
   case eCSSUnit_Initial:
     svgReset->mFilter.Clear();
@@ -7838,7 +7841,7 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
     svgReset->mFilter = parentSVGReset->mFilter;
     break;
   case eCSSUnit_List:
-  case eCSSUnit_ListDep:
+  case eCSSUnit_ListDep: {
     svgReset->mFilter.Clear();
     const nsCSSValueList* cur = filterValue->GetListValue();
     while(cur) {
@@ -7858,7 +7861,13 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
     } else {
       NS_NOTREACHED("filter css value list should only have urls right now");
     }
+    break;
   }
+
+  default:
+    NS_ABORT_IF_FALSE(false, "unexpected value unit");
+  }
+
   // const nsCSSValue* filterValue = aRuleData->ValueForFilter();
   // if (eCSSUnit_List == filterValue->GetUnit() || eCSSUnit_ListDep == filterValue->GetUnit()) {
   //   const nsCSSValueList* filterValueList = filterValue->GetListValue();
