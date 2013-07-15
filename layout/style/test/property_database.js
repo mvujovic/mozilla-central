@@ -3510,8 +3510,87 @@ var gCSSProperties = {
 		inherited: false,
 		type: CSS_TYPE_LONGHAND,
 		initial_values: [ "none" ],
-		other_values: [ "url(#myfilt)" ],
-		invalid_values: [ "url(#myfilt) none" ]
+		other_values: [
+			"url(#my-filter)",
+			"url(#my-filter-1) url(#my-filter-2)",
+			"grayscale(1) url(#my-filter-1)",
+
+			// FIXME(krit,mvujovic): blur
+
+			"brightness(0)",
+			"brightness(50%)",
+			"brightness(1)",
+			"brightness(1.0)",
+			"brightness(2)",
+			"brightness(350%)",
+			"brightness(4.567)",
+
+			"contrast(0)",
+			"contrast(50%)",
+			"contrast(1)",
+			"contrast(1.0)",
+			"contrast(2)",
+			"contrast(350%)",
+			"contrast(4.567)",
+
+			"grayscale(0)",
+			"grayscale(50%)",
+			"grayscale(1)",
+			"grayscale(1.0)",
+
+			"invert(0)",
+			"invert(50%)",
+			"invert(1)",
+			"invert(1.0)",
+
+			"opacity(0)",
+			"opacity(50%)",
+			"opacity(1)",
+			"opacity(1.0)",
+
+			"saturate(0)",
+			"saturate(50%)",
+			"saturate(1)",
+			"saturate(1.0)",
+			"saturate(2)",
+			"saturate(350%)",
+			"saturate(4.567)",
+
+			"sepia(0)",
+			"sepia(50%)",
+			"sepia(1)",
+			"sepia(1.0)",
+		],
+		invalid_values: [
+			"url(#my-filter) none",
+
+			// FIXME(krit,mvujovic): blur
+
+			"brightness()",
+			"brightness(-1)",
+
+			"contrast()",
+			"contrast(-1)",
+
+			"grayscale()",
+			"grayscale(-1)",
+			// FIXME(krit,mvujovic): > 100% value for grayscale?
+
+			"invert()",
+			"invert(-1)",
+			// FIXME(krit,mvujovic): > 100% value for invert?
+
+			"opacity()",
+			"opacity(-1)",
+			// FIXME(krit,mvujovic): > 100% value for opacity?
+
+			"saturate()",
+			"saturate(-1)",
+
+			"sepia()",
+			"sepia(-1)",
+			// FIXME(krit,mvujovic): > 100% value for invert?
+		]
 	},
 	"flood-color": {
 		domProp: "floodColor",
