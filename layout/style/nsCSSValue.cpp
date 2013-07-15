@@ -230,6 +230,62 @@ bool nsCSSValue::operator==(const nsCSSValue& aOther) const
   return false;
 }
 
+bool nsCSSValue::operator==(float aFloat) const
+{
+  if (eCSSUnit_Number == mUnit ||
+      IsLengthUnit()) {
+    return GetFloatValue() == aFloat;
+  }
+  else if (eCSSUnit_Percent == mUnit) {
+    return GetPercentValue() == aFloat;
+  }
+  else if (eCSSUnit_Integer == mUnit) {
+    // FIXME(krit,mvujovic): Might want to convert float to int instead.
+    return (float)GetIntValue() == aFloat;
+  }
+  else {
+    NS_NOTREACHED("comparsion between css value unit and float is not supported");
+    return false;
+  }
+}
+
+bool nsCSSValue::operator<(float aFloat) const
+{
+  if (eCSSUnit_Number == mUnit ||
+      IsLengthUnit()) {
+    return GetFloatValue() < aFloat;
+  }
+  else if (eCSSUnit_Percent == mUnit) {
+    return GetPercentValue() < aFloat;
+  }
+  else if (eCSSUnit_Integer == mUnit) {
+    // FIXME(krit,mvujovic): Might want to convert float to int instead.
+    return (float)GetIntValue() < aFloat;
+  }
+  else {
+    NS_NOTREACHED("comparsion between css value unit and float is not supported");
+    return false;
+  }
+}
+
+bool nsCSSValue::operator<=(float aFloat) const
+{
+  if (*this == aFloat)
+    return true;
+
+  return *this < aFloat;
+}
+
+bool nsCSSValue::operator>(float aFloat) const
+{
+  return !(*this <= aFloat);
+}
+
+bool nsCSSValue::operator>=(float aFloat) const
+{
+  return !(*this < aFloat);
+}
+
 double nsCSSValue::GetAngleValueInRadians() const
 {
   double angle = GetFloatValue();

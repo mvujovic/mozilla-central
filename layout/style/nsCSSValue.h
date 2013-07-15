@@ -286,7 +286,13 @@ public:
   ~nsCSSValue() { Reset(); }
 
   nsCSSValue&  operator=(const nsCSSValue& aCopy);
-  bool        operator==(const nsCSSValue& aOther) const;
+  bool         operator==(const nsCSSValue& aOther) const;
+
+  bool         operator==(float aFloat) const;
+  bool         operator<(float aFloat) const;
+  bool         operator<=(float aFloat) const;
+  bool         operator>(float aFloat) const;
+  bool         operator>=(float aFloat) const;
 
   bool operator!=(const nsCSSValue& aOther) const
   {

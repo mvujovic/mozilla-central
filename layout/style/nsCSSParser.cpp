@@ -10071,12 +10071,14 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
   nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
   switch(keyword) {
   case eCSSKeyword_drop_shadow:
+    // FIXME(krit,mvujovic): Remove this for minimal branch.
     return ParseShadowItem(aValue, false);
   case eCSSKeyword_blur: {
     int32_t variantMask = VARIANT_LENGTH | VARIANT_CALC;
     return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
   }
   case eCSSKeyword_hue_rotate: {
+    // FIXME(krit,mvujovic): Remove this for minimal branch.
     int32_t variantMask = VARIANT_ANGLE_OR_ZERO;
     return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
   }
