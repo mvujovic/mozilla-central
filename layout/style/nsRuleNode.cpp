@@ -7707,9 +7707,38 @@ nsRuleNode::ComputeSVGData(void* aStartStruct,
   COMPUTE_END_INHERITED(SVG, svg)
 }
 
+static nsStyleFilter::Type StyleFilterTypeForKeyword(nsCSSKeyword keyword)
+{
+  switch(keyword) {
+  case eCSSKeyword_blur:
+    return nsStyleFilter::Type::Blur;
+  case eCSSKeyword_brightness:
+    return nsStyleFilter::Type::Brightness;
+  case eCSSKeyword_contrast:
+    return nsStyleFilter::Type::Contrast;
+  case eCSSKeyword_drop_shadow:
+    return nsStyleFilter::Type::DropShadow;
+  case eCSSKeyword_grayscale:
+    return nsStyleFilter::Type::Grayscale;
+  case eCSSKeyword_hue_rotate:
+    return nsStyleFilter::Type::HueRotate;
+  case eCSSKeyword_invert:
+    return nsStyleFilter::Type::Invert;
+  case eCSSKeyword_opacity:
+    return nsStyleFilter::Type::Opacity;
+  case eCSSKeyword_saturate:
+    return nsStyleFilter::Type::Saturate;
+  case eCSSKeyword_sepia:
+    return nsStyleFilter::Type::Sepia;
+  default:
+    NS_NOTREACHED("Unknown filter type.");
+    return nsStyleFilter::Type::Null;
+  }
+}
+
 static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
                               const nsCSSValue& aValue,
-                              nsStyleContext* aContext, 
+                              nsStyleContext* aStyleContext, 
                               nsPresContext* aPresContext,
                               bool& aCanStoreInRuleTree)
 {
@@ -7721,12 +7750,42 @@ static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
   }
 
   // FIXME(krit,mvujovic): drop-shadow crashes here sometimes.
-  NS_ABORT_IF_FALSE(unit == eCSSUnit_Function, "unrecognized filter type");
+  NS_ABORT_IF_FALSE(eCSSUnit_Function == unit, "unrecognized filter type");
 
-  // FIXME(krit,mvujovic): Continue working here...
-  // nsCSSValue::Array* filterFunction = aValue.GetArrayValue();
-  // nsCSSKeyword keyword = (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
-  // styleFilter.mType = StyleFilterTypeForKeyword(keyword);
+  nsCSSValue::Array* filterFunction = aValue.GetArrayValue();
+  nsCSSKeyword keyword = (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
+  aStyleFilter.mType = StyleFilterTypeForKeyword(keyword);
+
+  if (nsStyleFilter::Type::DropShadow == aStyleFilter.mType) {
+    NS_NOTREACHED("drop shadow is not implemented yet");
+    return;
+  }
+
+  NS_ABORT_IF_FALSE(filterFunction->Count() == 2, "all filter functions except drop-shadow should "
+                                                  "have exactly one argument");
+
+  nsCSSValue& firstArgument = filterFunction->Item(1);
+  int32_t mask = 0;
+  switch (aStyleFilter.mType) {
+  case nsStyleFilter::Type::Blur:
+    mask |= (SETCOORD_LP | SETCOORD_STORE_CALC);
+    break;
+  case nsStyleFilter::Type::HueRotate:
+    NS_NOTREACHED("hue rotate is not implemented yet");
+    break;
+  case nsStyleFilter::Type::DropShadow:
+    NS_NOTREACHED("drop shadow should have been handled already");
+    break;
+  default:
+    mask |= (SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC);
+  }
+
+  const nsStyleCoord dummyParentCoord;
+  bool success = SetCoord(firstArgument, aStyleFilter.mValue, dummyParentCoord, mask, aStyleContext,
+                          aPresContext, aCanStoreInRuleTree);
+  NS_ABORT_IF_FALSE(success, "could not set filter function argument");
+
+  // FIXME(krit,mvujovic): Copy over the drop shadow, hue rotate code from down here eventually.
   // if (styleFilter.mType != nsStyleFilter::Type::DropShadow) {
   //   NS_ABORT_IF_FALSE(filterFunction->Count() == 2, 
   //                     "filter function has wrong number of args");
