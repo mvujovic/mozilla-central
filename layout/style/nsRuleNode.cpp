@@ -7829,9 +7829,9 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
   switch(filterValue->GetUnit()) {
+  // FIXME(krit,mvujovic): Should we be clearing on the null case? See font-feature-settings.
   case eCSSUnit_Null:
     break;
-
   case eCSSUnit_None:
   case eCSSUnit_Initial:
     svgReset->mFilter.Clear();
@@ -7848,24 +7848,13 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
       nsStyleFilter styleFilter;
       CreateStyleFilter(styleFilter, cur->mValue, aContext, mPresContext, canStoreInRuleTree);
       NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::Null, "style filter should be set");
-      cur = cur->mNext;
-    }
-
-
-    if (eCSSUnit_URL == cur->mValue.GetUnit()) {
-      svgReset->mFilter.Clear();
-      nsStyleFilter styleFilter;
-      styleFilter.mType = nsStyleFilter::Type::URL;
-      styleFilter.mUrl = cur->mValue.GetURLValue();
       svgReset->mFilter.AppendElement(styleFilter);
-    } else {
-      NS_NOTREACHED("filter css value list should only have urls right now");
+      cur = cur->mNext;
     }
     break;
   }
-
   default:
-    NS_ABORT_IF_FALSE(false, "unexpected value unit");
+    NS_ABORT_IF_FALSE(false, "unexpected css value unit");
   }
 
   // const nsCSSValue* filterValue = aRuleData->ValueForFilter();
