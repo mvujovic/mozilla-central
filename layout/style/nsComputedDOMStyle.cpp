@@ -4468,19 +4468,77 @@ nsComputedDOMStyle::DoGetClipPath()
   return val;
 }
 
+static void AppendFilterFunctionName(nsAutoString& aString, nsStyleFilter::Type mType)
+{
+  switch(mType) {
+    case nsStyleFilter::Type::Blur:
+      aString.AppendLiteral("blur(");
+      break;
+    case nsStyleFilter::Type::Brightness:
+      aString.AppendLiteral("brightness(");
+      break;
+    case nsStyleFilter::Type::Contrast:
+      aString.AppendLiteral("contrast(");
+      break;
+    case nsStyleFilter::Type::DropShadow:
+      aString.AppendLiteral("drop-shadow(");
+      break;
+    case nsStyleFilter::Type::Grayscale:
+      aString.AppendLiteral("grayscale(");
+      break;
+    case nsStyleFilter::Type::HueRotate:
+      aString.AppendLiteral("hue-rotate(");
+      break;
+    case nsStyleFilter::Type::Invert:
+      aString.AppendLiteral("invert(");
+      break;
+    case nsStyleFilter::Type::Opacity:
+      aString.AppendLiteral("opacity(");
+      break;
+    case nsStyleFilter::Type::Saturate:
+      aString.AppendLiteral("saturate(");
+      break;
+    case nsStyleFilter::Type::Sepia:
+      aString.AppendLiteral("sepia(");
+      break;
+    default:
+      NS_NOTREACHED("unrecognized filter type");
+  }
+}
+
+static nsROCSSPrimitiveValue* CreatePrimitiveValueForFilterFunction(const nsStyleFilter& aStyleFilter)
+{
+  nsAutoString filterFunctionString;
+  AppendFilterFunctionName(filterFunctionString, aStyleFilter.mType);
+  nsROCSSPrimitiveValue *value = new nsROCSSPrimitiveValue;
+  value->SetString(filterFunctionString);
+  return value;
+}
+
 CSSValue*
 nsComputedDOMStyle::DoGetFilter()
 {
-  nsROCSSPrimitiveValue* val = new nsROCSSPrimitiveValue;
-
   const nsStyleSVGReset* svg = StyleSVGReset();
 
-  if (svg->DeprecatedFilter())
-    val->SetURI(svg->DeprecatedFilter());
-  else
-    val->SetIdent(eCSSKeyword_none);
-
-  return val;
+  if (svg->DeprecatedFilter()) {
+    nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
+    value->SetURI(svg->DeprecatedFilter());
+    return value;
+  } else if (svg->mFilter.Length() > 0) {
+    // FIXME(krit,mvujovic): Handle URLs in here.
+    nsDOMCSSValueList *valueList = GetROCSSValueList(false);
+    for(uint32_t i = 0; i < svg->mFilter.Length(); i++) {
+      const nsStyleFilter& styleFilter = svg->mFilter[i];
+      nsROCSSPrimitiveValue* value = 
+        CreatePrimitiveValueForFilterFunction(styleFilter);
+      valueList->AppendCSSValue(value);
+    }
+    return valueList;
+  } else {
+    nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
+    value->SetIdent(eCSSKeyword_none);
+    return value;
+  }
 }
 
 CSSValue*
