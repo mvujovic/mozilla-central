@@ -10066,32 +10066,46 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     return false;
   }
 
-  uint16_t minElems = 1U;
-  uint16_t maxElems = 1U;
+  int32_t variantMask;
   nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
   switch(keyword) {
-  case eCSSKeyword_drop_shadow:
-    // FIXME(krit,mvujovic): Remove this for minimal branch.
-    return ParseShadowItem(aValue, false);
-  case eCSSKeyword_blur: {
-    int32_t variantMask = VARIANT_LENGTH | VARIANT_CALC;
-    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
-  }
-  case eCSSKeyword_hue_rotate: {
-    // FIXME(krit,mvujovic): Remove this for minimal branch.
-    int32_t variantMask = VARIANT_ANGLE_OR_ZERO;
-    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
-  }
+  case eCSSKeyword_blur:
+    variantMask = VARIANT_LENGTH | VARIANT_CALC;
   case eCSSKeyword_grayscale:
   case eCSSKeyword_brightness:
   case eCSSKeyword_contrast:
   case eCSSKeyword_invert:
   case eCSSKeyword_opacity:
   case eCSSKeyword_saturate:
-  case eCSSKeyword_sepia: {
-    int32_t variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
-    return ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue);
+  case eCSSKeyword_sepia:
+    variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
+  default:
+    return false;
   }
+
+  uint16_t minElems = 1U;
+  uint16_t maxElems = 1U;
+  if (!ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue)) {
+    return false;
+  }
+
+  NS_ABORT_IF_FALSE(aValue.GetUnit() == eCSSUnit_Function, "expected a filter function");
+  NS_ABORT_IF_FALSE(aValue.UnitHasArrayValue(), "filter function should be an array");
+  NS_ABORT_IF_FALSE(aValue.GetArrayValue()->Count() == 2, "filter function should have exactly"
+                                                          "one argument");
+  nsCSSValue& firstArgument = aValue.GetArrayValue()->Item(1);
+  switch(keyword) {
+  case eCSSKeyword_blur:
+  case eCSSKeyword_brightness:
+  case eCSSKeyword_contrast:
+  case eCSSKeyword_saturate:
+    // FIXME(krit,mvujovic): How do we handle calc?
+    return firstArgument >= 0;
+  case eCSSKeyword_grayscale:
+  case eCSSKeyword_invert:
+  case eCSSKeyword_opacity:
+  case eCSSKeyword_sepia:
+    return firstArgument >= 0 && firstArgument <= 1;
   default:
     return false;
   }
