@@ -2312,7 +2312,7 @@ struct nsStyleSVGReset {
   }
 
   nsCOMPtr<nsIURI> mClipPath;         // [reset]
-  nsTArray<nsStyleFilter> mFilter;           // [reset]
+  nsTArray<nsStyleFilter> mFilter;    // [reset]
   nsCOMPtr<nsIURI> mMask;             // [reset]
   nscolor          mStopColor;        // [reset]
   nscolor          mFloodColor;       // [reset]

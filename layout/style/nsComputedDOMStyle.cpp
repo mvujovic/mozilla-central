@@ -4556,27 +4556,21 @@ nsComputedDOMStyle::CreatePrimitiveValueForFilterFunction(
 CSSValue*
 nsComputedDOMStyle::DoGetFilter()
 {
-  const nsStyleSVGReset* svg = StyleSVGReset();
+  const nsTArray<nsStyleFilter>& filter = StyleSVGReset()->mFilter;
 
-  // FIXME(krit,mvujovic): Check if existing tests / content needs a CSSValue instead of CSSValueList here.
-  if (svg->DeprecatedFilter()) {
-    nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
-    value->SetURI(svg->DeprecatedFilter());
-    return value;
-  } else if (svg->mFilter.Length() > 0) {
-    nsDOMCSSValueList *valueList = GetROCSSValueList(false);
-    for(uint32_t i = 0; i < svg->mFilter.Length(); i++) {
-      const nsStyleFilter& styleFilter = svg->mFilter[i];
-      nsROCSSPrimitiveValue* value =
-        CreatePrimitiveValueForFilterFunction(styleFilter);
-      valueList->AppendCSSValue(value);
-    }
-    return valueList;
-  } else {
+  if (!filter.Length()) {
     nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
     value->SetIdent(eCSSKeyword_none);
     return value;
   }
+
+  nsDOMCSSValueList *valueList = GetROCSSValueList(false);
+  for(uint32_t i = 0; i < filter.Length(); i++) {
+    nsROCSSPrimitiveValue* value =
+      CreatePrimitiveValueForFilterFunction(filter[i]);
+    valueList->AppendCSSValue(value);
+  }
+  return valueList;
 }
 
 CSSValue*
