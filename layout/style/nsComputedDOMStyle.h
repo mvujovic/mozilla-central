@@ -491,6 +491,11 @@ private:
   bool GetFrameBorderRectWidth(nscoord& aWidth);
   bool GetFrameBorderRectHeight(nscoord& aHeight);
 
+  void SetCssTextToCoord(nsAutoString& aCssText, const nsStyleCoord& aCoord);
+  nsROCSSPrimitiveValue* CreatePrimitiveValueForFilterFunction(
+    const nsStyleFilter&aStyleFilter);
+
+
   struct ComputedStyleMapEntry
   {
     // Create a pointer-to-member-function type.

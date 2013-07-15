@@ -4506,11 +4506,49 @@ static void AppendFilterFunctionName(nsAutoString& aString, nsStyleFilter::Type 
   }
 }
 
-static nsROCSSPrimitiveValue* CreatePrimitiveValueForFilterFunction(const nsStyleFilter& aStyleFilter)
+void
+nsComputedDOMStyle::SetCssTextToCoord(nsAutoString& aCssText,
+                                      const nsStyleCoord& aCoord)
 {
+  nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
+  bool clampNegativeCalc = true;
+  // FIXME(krit,mvujovic): Change SetValueToCoord to handle angle values for hue-rotate.
+  // FIXME(krit,mvujovic): Share angle processing with gradient code.
+  SetValueToCoord(value, aCoord, clampNegativeCalc);
+  value->GetCssText(aCssText);
+  delete value;
+}
+
+nsROCSSPrimitiveValue*
+nsComputedDOMStyle::CreatePrimitiveValueForFilterFunction(
+  const nsStyleFilter&aStyleFilter)
+{
+  nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
+
+  // Handle url().
+  if (nsStyleFilter::Type::URL == aStyleFilter.mType) {
+    value->SetURI(aStyleFilter.mUrl);
+    return value;
+  }
+
+  // Filter function name and opening parenthesis.
   nsAutoString filterFunctionString;
   AppendFilterFunctionName(filterFunctionString, aStyleFilter.mType);
-  nsROCSSPrimitiveValue *value = new nsROCSSPrimitiveValue;
+
+  if (nsStyleFilter::Type::DropShadow == aStyleFilter.mType) {
+    // FIXME(krit,mvujovic): Implement drop shadow.
+    NS_NOTREACHED("drop shadow is not implemented yet");
+    return value;
+  }
+
+  // Filter function argument.
+  nsAutoString argumentString;
+  SetCssTextToCoord(argumentString, aStyleFilter.mValue);
+  filterFunctionString.Append(argumentString);
+
+  // Filter function closing parenthesis.
+  filterFunctionString.AppendLiteral(")");
+
   value->SetString(filterFunctionString);
   return value;
 }
@@ -4520,16 +4558,16 @@ nsComputedDOMStyle::DoGetFilter()
 {
   const nsStyleSVGReset* svg = StyleSVGReset();
 
+  // FIXME(krit,mvujovic): Check if existing tests / content needs a CSSValue instead of CSSValueList here.
   if (svg->DeprecatedFilter()) {
     nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
     value->SetURI(svg->DeprecatedFilter());
     return value;
   } else if (svg->mFilter.Length() > 0) {
-    // FIXME(krit,mvujovic): Handle URLs in here.
     nsDOMCSSValueList *valueList = GetROCSSValueList(false);
     for(uint32_t i = 0; i < svg->mFilter.Length(); i++) {
       const nsStyleFilter& styleFilter = svg->mFilter[i];
-      nsROCSSPrimitiveValue* value = 
+      nsROCSSPrimitiveValue* value =
         CreatePrimitiveValueForFilterFunction(styleFilter);
       valueList->AppendCSSValue(value);
     }
