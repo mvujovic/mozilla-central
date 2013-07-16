@@ -3511,11 +3511,32 @@ var gCSSProperties = {
 		type: CSS_TYPE_LONGHAND,
 		initial_values: [ "none" ],
 		other_values: [
+			// SVG reference filters
 			"url(#my-filter)",
 			"url(#my-filter-1) url(#my-filter-2)",
-			"grayscale(1) url(#my-filter-1)",
 
-			// FIXME(krit,mvujovic): blur
+			// Filter functions
+			"opacity(50%) saturate(1.0)",
+			"invert(50%) sepia(0.1) brightness(90%)",
+
+			// Mixed SVG reference filters and filter functions
+			"grayscale(1) url(#my-filter-1)",
+			"url(#my-filter-1) brightness(50%) contrast(0.9)",
+
+			"blur(0)",
+			"blur(0px)",
+			"blur(0.5px)",
+			"blur(3px)",
+			"blur(100px)",
+			"blur(0.1em)",
+
+			"brightness(0)",
+			"brightness(50%)",
+			"brightness(1)",
+			"brightness(1.0)",
+			"brightness(2)",
+			"brightness(350%)",
+			"brightness(4.567)",
 
 			"brightness(0)",
 			"brightness(50%)",
@@ -3562,34 +3583,100 @@ var gCSSProperties = {
 			"sepia(1.0)",
 		],
 		invalid_values: [
+			// none
+			"none none",
 			"url(#my-filter) none",
+			"none url(#my-filter)",
+			"blur(2px) none url(#my-filter)",
 
-			// FIXME(krit,mvujovic): blur
+			// Nested filters
+			"grayscale(invert(1.0))",
+
+			// Comma delimited filters
+			"url(#my-filter),",
+			"invert(50%), url(#my-filter), brightness(90%)",
+
+			// Test the following for each filter function:
+			// - Invalid number of arguments
+			// - Comma delimited arguments
+			// - Wrong argument type
+			// - Argument value out of range
+			"blur()",
+			"blur(3px 5px)",
+			"blur(3px,)",
+			"blur(3px, 5px)",
+			"blur(#my-filter)",
+			"blur(0.5)",
+			"blur(50%)",
+			"blur(-3px)",
 
 			"brightness()",
+			"brightness(0.5 0.5)",
+			"brightness(0.5,)",
+			"brightness(0.5, 0.5)",
+			"brightness(#my-filter)",
+			"brightness(10px)",
 			"brightness(-1)",
 
 			"contrast()",
+			"contrast(0.5 0.5)",
+			"contrast(0.5,)",
+			"contrast(0.5, 0.5)",
+			"contrast(#my-filter)",
+			"contrast(10px)",
 			"contrast(-1)",
 
 			"grayscale()",
+			"grayscale(0.5 0.5)",
+			"grayscale(0.5,)",
+			"grayscale(0.5, 0.5)",
+			"grayscale(#my-filter)",
+			"grayscale(10px)",
 			"grayscale(-1)",
-			// FIXME(krit,mvujovic): > 100% value for grayscale?
+			"grayscale(2)",
+			"grayscale(350%)",
+			"grayscale(4.567)",
 
 			"invert()",
+			"invert(0.5 0.5)",
+			"invert(0.5,)",
+			"invert(0.5, 0.5)",
+			"grayscale(#my-filter)",
+			"invert(10px)",
 			"invert(-1)",
-			// FIXME(krit,mvujovic): > 100% value for invert?
+			"invert(2)",
+			"invert(350%)",
+			"invert(4.567)",
 
 			"opacity()",
+			"opacity(0.5 0.5)",
+			"opacity(0.5,)",
+			"opacity(0.5, 0.5)",
+			"opacity(#my-filter)",
+			"opacity(10px)",
 			"opacity(-1)",
-			// FIXME(krit,mvujovic): > 100% value for opacity?
+			"opacity(2)",
+			"opacity(350%)",
+			"opacity(4.567)",
 
 			"saturate()",
+			"saturate(0.5 0.5)",
+			"saturate(0.5,)",
+			"saturate(0.5, 0.5)",
+			"saturate(#my-filter)",
+			"saturate(10px)",
 			"saturate(-1)",
 
 			"sepia()",
+			"sepia(0.5 0.5)",
+			"sepia(0.5,)",
+			"sepia(0.5, 0.5)",
+			"sepia(#my-filter)",
+			"sepia(10px)",
 			"sepia(-1)",
-			// FIXME(krit,mvujovic): > 100% value for invert?
+			"sepia(2)",
+			"sepia(350%)",
+			"sepia(4.567)",
 		]
 	},
 	"flood-color": {
