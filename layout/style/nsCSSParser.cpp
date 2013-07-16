@@ -10141,7 +10141,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
   nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
   switch(keyword) {
   case eCSSKeyword_blur:
-    variantMask = VARIANT_LENGTH | VARIANT_CALC;
+    variantMask = VARIANT_LENGTH | VARIANT_NONNEGATIVE_DIMENSION | VARIANT_CALC;
     break;
   case eCSSKeyword_grayscale:
   case eCSSKeyword_brightness:
@@ -10153,6 +10153,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
     break;
   default:
+    // Unrecognized filter function.
     return false;
   }
 
@@ -10162,26 +10163,46 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     return false;
   }
 
-  NS_ABORT_IF_FALSE(aValue.GetUnit() == eCSSUnit_Function, "expected a filter function");
-  NS_ABORT_IF_FALSE(aValue.UnitHasArrayValue(), "filter function should be an array");
-  NS_ABORT_IF_FALSE(aValue.GetArrayValue()->Count() == 2, "filter function should have exactly"
-                                                          "one argument");
-  nsCSSValue& firstArgument = aValue.GetArrayValue()->Item(1);
+  NS_ABORT_IF_FALSE(aValue.GetUnit() == eCSSUnit_Function, 
+                    "expected a filter function");
+  NS_ABORT_IF_FALSE(aValue.UnitHasArrayValue(), 
+                    "filter function should be an array");
+  NS_ABORT_IF_FALSE(aValue.GetArrayValue()->Count() == 2,
+                    "filter function should have exactly one argument");
+
+  // Enforce a value range for the filter function argument.
+  // Note that blur radius range was enforced earlier by
+  // VARIANT_NONNEGATIVE_DIMENSION.
+  nsCSSValue& arg = aValue.GetArrayValue()->Item(1);
   switch(keyword) {
-  case eCSSKeyword_blur:
+  // These filter functions require a nonnegative number or percent.
   case eCSSKeyword_brightness:
   case eCSSKeyword_contrast:
   case eCSSKeyword_saturate:
-    // FIXME(krit,mvujovic): How do we handle calc?
-    return firstArgument >= 0;
+    if (arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0) {
+      return false;
+    }
+    if (arg.GetUnit() == eCSSUnit_Percent && arg.GetPercentValue() < 0) {
+      return false;
+    }
+    break;
+  // These filter functions require a nonnegative number or percent,
+  // not exceeding 1.0 or 100%.
   case eCSSKeyword_grayscale:
   case eCSSKeyword_invert:
   case eCSSKeyword_opacity:
   case eCSSKeyword_sepia:
-    return firstArgument >= 0 && firstArgument <= 1;
-  default:
-    return false;
+    if (arg.GetUnit() == eCSSUnit_Number
+        && (arg.GetFloatValue() < 0.0f || arg.GetFloatValue() > 1.0f)) {
+      return false;
+    }
+    if (arg.GetUnit() == eCSSUnit_Percent
+        && (arg.GetPercentValue() < 0.0f || arg.GetPercentValue() > 1.0f)) {
+      return false;
+    }
   }
+
+  return true;
 }
 
 /* Parses a filter property value by continuously reading in urls and/or filter
