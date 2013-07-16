@@ -10052,92 +10052,6 @@ CSSParserImpl::ParseSingleTransform(bool aIsPrefixed, nsCSSValue& aValue)
   return ParseFunction(keyword, variantMask, 0, minElems, maxElems, aValue);
 }
 
-bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
-{
-  if (ParseVariant(aValue, VARIANT_URL, nullptr)) {
-    return true;
-  }
-
-  if (!GetToken(true)) {
-    return false;
-  }
-
-  if (mToken.mType != eCSSToken_Function) {
-    return false;
-  }
-
-  int32_t variantMask;
-  nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
-  switch(keyword) {
-  case eCSSKeyword_blur:
-    variantMask = VARIANT_LENGTH | VARIANT_CALC;
-    break;
-  case eCSSKeyword_grayscale:
-  case eCSSKeyword_brightness:
-  case eCSSKeyword_contrast:
-  case eCSSKeyword_invert:
-  case eCSSKeyword_opacity:
-  case eCSSKeyword_saturate:
-  case eCSSKeyword_sepia:
-    variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
-    break;
-  default:
-    return false;
-  }
-
-  uint16_t minElems = 1U;
-  uint16_t maxElems = 1U;
-  if (!ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue)) {
-    return false;
-  }
-
-  NS_ABORT_IF_FALSE(aValue.GetUnit() == eCSSUnit_Function, "expected a filter function");
-  NS_ABORT_IF_FALSE(aValue.UnitHasArrayValue(), "filter function should be an array");
-  NS_ABORT_IF_FALSE(aValue.GetArrayValue()->Count() == 2, "filter function should have exactly"
-                                                          "one argument");
-  nsCSSValue& firstArgument = aValue.GetArrayValue()->Item(1);
-  switch(keyword) {
-  case eCSSKeyword_blur:
-  case eCSSKeyword_brightness:
-  case eCSSKeyword_contrast:
-  case eCSSKeyword_saturate:
-    // FIXME(krit,mvujovic): How do we handle calc?
-    return firstArgument >= 0;
-  case eCSSKeyword_grayscale:
-  case eCSSKeyword_invert:
-  case eCSSKeyword_opacity:
-  case eCSSKeyword_sepia:
-    return firstArgument >= 0 && firstArgument <= 1;
-  default:
-    return false;
-  }
-}
-
-bool CSSParserImpl::ParseFilter()
-{
-  nsCSSValue value;
-  if (ParseVariant(value, VARIANT_INHERIT | VARIANT_NONE, nullptr)) {
-    // 'inherit', 'initial', and 'none' must be alone
-    if (!ExpectEndProperty()) {
-      return false;
-    }
-  } else {
-    nsCSSValueList* cur = value.SetListValue();
-    while (cur) {
-      if (!ParseSingleFilter(cur->mValue)) {
-        return false;
-      }
-      if (CheckEndProperty()) {
-        break;
-      }
-      cur->mNext = new nsCSSValueList;
-      cur = cur->mNext;
-    }
-  }
-  AppendValue(eCSSProperty_filter, value);
-  return true;
-}
-
 /* Parses a transform property list by continuously reading in properties
  * and constructing a matrix from it.
  */
@@ -10202,6 +10116,100 @@ bool CSSParserImpl::ParseTransformOrigin(bool aPerspective)
 
     AppendValue(prop, value);
   }
+  return true;
+}
+
+/* Reads a single url or filter function from the tokenizer stream, reporting an
+ * error if something goes wrong.
+ */
+bool
+CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
+{
+  if (ParseVariant(aValue, VARIANT_URL, nullptr)) {
+    return true;
+  }
+
+  if (!GetToken(true)) {
+    return false;
+  }
+
+  if (mToken.mType != eCSSToken_Function) {
+    return false;
+  }
+
+  int32_t variantMask;
+  nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
+  switch(keyword) {
+  case eCSSKeyword_blur:
+    variantMask = VARIANT_LENGTH | VARIANT_CALC;
+    break;
+  case eCSSKeyword_grayscale:
+  case eCSSKeyword_brightness:
+  case eCSSKeyword_contrast:
+  case eCSSKeyword_invert:
+  case eCSSKeyword_opacity:
+  case eCSSKeyword_saturate:
+  case eCSSKeyword_sepia:
+    variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
+    break;
+  default:
+    return false;
+  }
+
+  uint16_t minElems = 1U;
+  uint16_t maxElems = 1U;
+  if (!ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue)) {
+    return false;
+  }
+
+  NS_ABORT_IF_FALSE(aValue.GetUnit() == eCSSUnit_Function, "expected a filter function");
+  NS_ABORT_IF_FALSE(aValue.UnitHasArrayValue(), "filter function should be an array");
+  NS_ABORT_IF_FALSE(aValue.GetArrayValue()->Count() == 2, "filter function should have exactly"
+                                                          "one argument");
+  nsCSSValue& firstArgument = aValue.GetArrayValue()->Item(1);
+  switch(keyword) {
+  case eCSSKeyword_blur:
+  case eCSSKeyword_brightness:
+  case eCSSKeyword_contrast:
+  case eCSSKeyword_saturate:
+    // FIXME(krit,mvujovic): How do we handle calc?
+    return firstArgument >= 0;
+  case eCSSKeyword_grayscale:
+  case eCSSKeyword_invert:
+  case eCSSKeyword_opacity:
+  case eCSSKeyword_sepia:
+    return firstArgument >= 0 && firstArgument <= 1;
+  default:
+    return false;
+  }
+}
+
+/* Parses a filter property value by continuously reading in urls and/or filter
+ * functions and constructing a list.
+ */
+bool
+CSSParserImpl::ParseFilter()
+{
+  nsCSSValue value;
+  if (ParseVariant(value, VARIANT_INHERIT | VARIANT_NONE, nullptr)) {
+    // 'inherit', 'initial', and 'none' must be alone
+    if (!ExpectEndProperty()) {
+      return false;
+    }
+  } else {
+    nsCSSValueList* cur = value.SetListValue();
+    while (cur) {
+      if (!ParseSingleFilter(cur->mValue)) {
+        return false;
+      }
+      if (CheckEndProperty()) {
+        break;
+      }
+      cur->mNext = new nsCSSValueList;
+      cur = cur->mNext;
+    }
+  }
+  AppendValue(eCSSProperty_filter, value);
   return true;
 }
 
