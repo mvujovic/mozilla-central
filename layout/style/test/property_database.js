@@ -3596,7 +3596,7 @@ var gCSSProperties = {
 			"url(#my-filter),",
 			"invert(50%), url(#my-filter), brightness(90%)",
 
-			// Test the following for each filter function:
+			// Test the following situations for each filter function:
 			// - Invalid number of arguments
 			// - Comma delimited arguments
 			// - Wrong argument type
