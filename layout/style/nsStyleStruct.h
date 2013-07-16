@@ -2260,24 +2260,23 @@ struct nsStyleSVG {
 
 // FIXME(krit,mvujovic): Rename this to nsStyleFilterFunction or something?
 struct nsStyleFilter {
-  // FIXME(krit,mvujovic): Should we override new operator?
   nsStyleFilter();
   nsStyleFilter(const nsStyleFilter& aSource);
   ~nsStyleFilter();
 
   enum Type {
-    Null,
-    URL,
-    Grayscale,
-    Saturate,
-    Sepia,
-    Invert,
-    Opacity,
-    Brightness,
-    Contrast,
-    HueRotate,
-    Blur,
-    DropShadow
+    kNull,
+    kURL,
+    kGrayscale,
+    kSaturate,
+    kSepia,
+    kInvert,
+    kOpacity,
+    kBrightness,
+    kContrast,
+    kHueRotate,
+    kBlur,
+    kDropShadow
   };
 
   Type mType;
@@ -2307,7 +2306,7 @@ struct nsStyleSVGReset {
   }
 
   nsIURI* DeprecatedFilter() const {
-    return (mFilter.Length() == 1 && mFilter[0].mType == nsStyleFilter::Type::URL) ?
+    return (mFilter.Length() == 1 && mFilter[0].mType == nsStyleFilter::Type::kURL) ?
            mFilter[0].mUrl : nullptr;
   }
 

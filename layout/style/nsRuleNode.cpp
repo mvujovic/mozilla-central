@@ -7711,28 +7711,28 @@ static nsStyleFilter::Type StyleFilterTypeForKeyword(nsCSSKeyword keyword)
 {
   switch(keyword) {
   case eCSSKeyword_blur:
-    return nsStyleFilter::Type::Blur;
+    return nsStyleFilter::Type::kBlur;
   case eCSSKeyword_brightness:
-    return nsStyleFilter::Type::Brightness;
+    return nsStyleFilter::Type::kBrightness;
   case eCSSKeyword_contrast:
-    return nsStyleFilter::Type::Contrast;
+    return nsStyleFilter::Type::kContrast;
   case eCSSKeyword_drop_shadow:
-    return nsStyleFilter::Type::DropShadow;
+    return nsStyleFilter::Type::kDropShadow;
   case eCSSKeyword_grayscale:
-    return nsStyleFilter::Type::Grayscale;
+    return nsStyleFilter::Type::kGrayscale;
   case eCSSKeyword_hue_rotate:
-    return nsStyleFilter::Type::HueRotate;
+    return nsStyleFilter::Type::kHueRotate;
   case eCSSKeyword_invert:
-    return nsStyleFilter::Type::Invert;
+    return nsStyleFilter::Type::kInvert;
   case eCSSKeyword_opacity:
-    return nsStyleFilter::Type::Opacity;
+    return nsStyleFilter::Type::kOpacity;
   case eCSSKeyword_saturate:
-    return nsStyleFilter::Type::Saturate;
+    return nsStyleFilter::Type::kSaturate;
   case eCSSKeyword_sepia:
-    return nsStyleFilter::Type::Sepia;
+    return nsStyleFilter::Type::kSepia;
   default:
     NS_NOTREACHED("Unknown filter type.");
-    return nsStyleFilter::Type::Null;
+    return nsStyleFilter::Type::kNull;
   }
 }
 
@@ -7744,71 +7744,47 @@ static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
 {
   nsCSSUnit unit = aValue.GetUnit();
   if (unit == eCSSUnit_URL) {
-    aStyleFilter.mType = nsStyleFilter::Type::URL;
+    aStyleFilter.mType = nsStyleFilter::Type::kURL;
     aStyleFilter.mUrl = aValue.GetURLValue();
     return;
   }
 
-  // FIXME(krit,mvujovic): drop-shadow crashes here sometimes.
-  NS_ABORT_IF_FALSE(eCSSUnit_Function == unit, "unrecognized filter type");
+  NS_ABORT_IF_FALSE(unit == eCSSUnit_Function, "expected a filter function");
 
   nsCSSValue::Array* filterFunction = aValue.GetArrayValue();
   nsCSSKeyword keyword = (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
   aStyleFilter.mType = StyleFilterTypeForKeyword(keyword);
 
-  if (nsStyleFilter::Type::DropShadow == aStyleFilter.mType) {
+  if (nsStyleFilter::Type::kDropShadow == aStyleFilter.mType) {
     NS_NOTREACHED("drop shadow is not implemented yet");
     return;
   }
 
-  NS_ABORT_IF_FALSE(filterFunction->Count() == 2, "all filter functions except drop-shadow should "
-                                                  "have exactly one argument");
-
-  nsCSSValue& firstArgument = filterFunction->Item(1);
   int32_t mask = 0;
   switch (aStyleFilter.mType) {
-  case nsStyleFilter::Type::Blur:
+  case nsStyleFilter::Type::kBlur:
     mask |= (SETCOORD_LP | SETCOORD_STORE_CALC);
     break;
-  case nsStyleFilter::Type::HueRotate:
+  case nsStyleFilter::Type::kHueRotate:
     NS_NOTREACHED("hue rotate is not implemented yet");
     break;
-  case nsStyleFilter::Type::DropShadow:
+  case nsStyleFilter::Type::kDropShadow:
     NS_NOTREACHED("drop shadow should have been handled already");
     break;
   default:
     mask |= (SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC);
   }
 
+  NS_ABORT_IF_FALSE(filterFunction->Count() == 2, 
+                    "all filter functions except drop-shadow should have "
+                    "exactly one argument");
+
+  nsCSSValue& firstArgument = filterFunction->Item(1);
   const nsStyleCoord dummyParentCoord;
-  bool success = SetCoord(firstArgument, aStyleFilter.mValue, dummyParentCoord, mask, aStyleContext,
-                          aPresContext, aCanStoreInRuleTree);
-  NS_ABORT_IF_FALSE(success, "could not set filter function argument");
-
-  // FIXME(krit,mvujovic): Copy over the drop shadow, hue rotate code from down here eventually.
-  // if (styleFilter.mType != nsStyleFilter::Type::DropShadow) {
-  //   NS_ABORT_IF_FALSE(filterFunction->Count() == 2, 
-  //                     "filter function has wrong number of args");
-  //   nsCSSValue& arg = filterFunction->Item(1);
-  //   // FIXME(krit,mvujovic): Check that we handle calc, angles correctly
-  //   int32_t mask = 0;
-  //   if (styleFilter.mType == nsStyleFilter::Type::HueRotate) {
-  //     mask |= SETCOORD_ANGLE;
-  //   } else if (styleFilter.mType == nsStyleFilter::Type::Blur) {
-  //     mask |= (SETCOORD_LP | SETCOORD_STORE_CALC);
-  //   } else {
-  //     mask |= (SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC);
-  //   }
-  //   // FIXME(krit,mvujovic): We get an unused variable warning for "success".
-  //   const nsStyleCoord dummyParentCoord;
-  //   bool success = SetCoord(arg, styleFilter.mValue, dummyParentCoord, mask, aContext, aPresContext,
-  //                           aCanStoreInRuleTree);
-  //   NS_ABORT_IF_FALSE(success, "could not set filter function argument");
-  // } else {
-  //   styleFilter.mShadow = GetShadowItemData(curElem, aContext, aPresContext, false, aCanStoreInRuleTree);
-  // }
-
-  // return styleFilter;
+  bool success = SetCoord(firstArgument, aStyleFilter.mValue, dummyParentCoord,
+                          mask, aStyleContext, aPresContext,
+                          aCanStoreInRuleTree);
+  NS_ABORT_IF_FALSE(success, "could not resolve filter function argument");
 }
 
 const void*
@@ -7906,7 +7882,7 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
     while(cur) {
       nsStyleFilter styleFilter;
       CreateStyleFilter(styleFilter, cur->mValue, aContext, mPresContext, canStoreInRuleTree);
-      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::Null, "style filter should be set");
+      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::kNull, "style filter should be set");
       svgReset->mFilter.AppendElement(styleFilter);
       cur = cur->mNext;
     }
@@ -7922,7 +7898,7 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
   //   if (eCSSUnit_URL == filterValueList->mValue.GetUnit()) {
   //     svgReset->mFilter.Clear();
   //     nsStyleFilter styleFilter;
-  //     styleFilter.mType = nsStyleFilter::Type::URL;
+  //     styleFilter.mType = nsStyleFilter::Type::kURL;
   //     styleFilter.mUrl = filterValueList->mValue.GetURLValue();
   //     svgReset->mFilter.AppendElement(styleFilter);
   //   } else {

@@ -4483,34 +4483,34 @@ static void
 FilterFunctionName(nsAutoString* aString, nsStyleFilter::Type mType)
 {
   switch(mType) {
-    case nsStyleFilter::Type::Blur:
+    case nsStyleFilter::Type::kBlur:
       aString->AssignLiteral("blur(");
       break;
-    case nsStyleFilter::Type::Brightness:
+    case nsStyleFilter::Type::kBrightness:
       aString->AssignLiteral("brightness(");
       break;
-    case nsStyleFilter::Type::Contrast:
+    case nsStyleFilter::Type::kContrast:
       aString->AssignLiteral("contrast(");
       break;
-    case nsStyleFilter::Type::DropShadow:
+    case nsStyleFilter::Type::kDropShadow:
       aString->AssignLiteral("drop-shadow(");
       break;
-    case nsStyleFilter::Type::Grayscale:
+    case nsStyleFilter::Type::kGrayscale:
       aString->AssignLiteral("grayscale(");
       break;
-    case nsStyleFilter::Type::HueRotate:
+    case nsStyleFilter::Type::kHueRotate:
       aString->AssignLiteral("hue-rotate(");
       break;
-    case nsStyleFilter::Type::Invert:
+    case nsStyleFilter::Type::kInvert:
       aString->AssignLiteral("invert(");
       break;
-    case nsStyleFilter::Type::Opacity:
+    case nsStyleFilter::Type::kOpacity:
       aString->AssignLiteral("opacity(");
       break;
-    case nsStyleFilter::Type::Saturate:
+    case nsStyleFilter::Type::kSaturate:
       aString->AssignLiteral("saturate(");
       break;
-    case nsStyleFilter::Type::Sepia:
+    case nsStyleFilter::Type::kSepia:
       aString->AssignLiteral("sepia(");
       break;
     default:
@@ -4525,7 +4525,7 @@ nsComputedDOMStyle::CreatePrimitiveValueForFilterFunction(
   nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
 
   // Handle url().
-  if (nsStyleFilter::Type::URL == aStyleFilter.mType) {
+  if (nsStyleFilter::Type::kURL == aStyleFilter.mType) {
     value->SetURI(aStyleFilter.mUrl);
     return value;
   }

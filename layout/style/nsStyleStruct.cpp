@@ -1004,7 +1004,7 @@ nsChangeHint nsStyleSVG::CalcDifference(const nsStyleSVG& aOther) const
 // nsStyleFilter
 //
 nsStyleFilter::nsStyleFilter()
-  : mType(Null)
+  : mType(kNull)
 {
   MOZ_COUNT_CTOR(nsStyleFilter);
 }
@@ -1014,11 +1014,11 @@ nsStyleFilter::nsStyleFilter(const nsStyleFilter& aSource)
 {
   MOZ_COUNT_CTOR(nsStyleFilter);
 
-  if (mType == URL)
+  if (mType == kURL)
     mUrl = aSource.mUrl;
-  else if (mType == DropShadow)
+  else if (mType == kDropShadow)
     mShadow = aSource.mShadow;
-  else if (mType != Null)
+  else if (mType != kNull)
     mValue = aSource.mValue;
 }
 
