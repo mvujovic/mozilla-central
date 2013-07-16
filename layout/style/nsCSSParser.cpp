@@ -10071,6 +10071,7 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
   switch(keyword) {
   case eCSSKeyword_blur:
     variantMask = VARIANT_LENGTH | VARIANT_CALC;
+    break;
   case eCSSKeyword_grayscale:
   case eCSSKeyword_brightness:
   case eCSSKeyword_contrast:
@@ -10079,6 +10080,7 @@ bool CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
   case eCSSKeyword_saturate:
   case eCSSKeyword_sepia:
     variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
+    break;
   default:
     return false;
   }
