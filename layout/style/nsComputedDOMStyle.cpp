@@ -4468,55 +4468,54 @@ nsComputedDOMStyle::DoGetClipPath()
   return val;
 }
 
-static void AppendFilterFunctionName(nsAutoString& aString, nsStyleFilter::Type mType)
-{
-  switch(mType) {
-    case nsStyleFilter::Type::Blur:
-      aString.AppendLiteral("blur(");
-      break;
-    case nsStyleFilter::Type::Brightness:
-      aString.AppendLiteral("brightness(");
-      break;
-    case nsStyleFilter::Type::Contrast:
-      aString.AppendLiteral("contrast(");
-      break;
-    case nsStyleFilter::Type::DropShadow:
-      aString.AppendLiteral("drop-shadow(");
-      break;
-    case nsStyleFilter::Type::Grayscale:
-      aString.AppendLiteral("grayscale(");
-      break;
-    case nsStyleFilter::Type::HueRotate:
-      aString.AppendLiteral("hue-rotate(");
-      break;
-    case nsStyleFilter::Type::Invert:
-      aString.AppendLiteral("invert(");
-      break;
-    case nsStyleFilter::Type::Opacity:
-      aString.AppendLiteral("opacity(");
-      break;
-    case nsStyleFilter::Type::Saturate:
-      aString.AppendLiteral("saturate(");
-      break;
-    case nsStyleFilter::Type::Sepia:
-      aString.AppendLiteral("sepia(");
-      break;
-    default:
-      NS_NOTREACHED("unrecognized filter type");
-  }
-}
-
 void
-nsComputedDOMStyle::SetCssTextToCoord(nsAutoString& aCssText,
+nsComputedDOMStyle::SetCssTextToCoord(nsAutoString* aCssText,
                                       const nsStyleCoord& aCoord)
 {
   nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
   bool clampNegativeCalc = true;
-  // FIXME(krit,mvujovic): Change SetValueToCoord to handle angle values for hue-rotate.
-  // FIXME(krit,mvujovic): Share angle processing with gradient code.
   SetValueToCoord(value, aCoord, clampNegativeCalc);
-  value->GetCssText(aCssText);
+  value->GetCssText(*aCssText);
   delete value;
+}
+
+static void
+FilterFunctionName(nsAutoString* aString, nsStyleFilter::Type mType)
+{
+  switch(mType) {
+    case nsStyleFilter::Type::Blur:
+      aString->AssignLiteral("blur(");
+      break;
+    case nsStyleFilter::Type::Brightness:
+      aString->AssignLiteral("brightness(");
+      break;
+    case nsStyleFilter::Type::Contrast:
+      aString->AssignLiteral("contrast(");
+      break;
+    case nsStyleFilter::Type::DropShadow:
+      aString->AssignLiteral("drop-shadow(");
+      break;
+    case nsStyleFilter::Type::Grayscale:
+      aString->AssignLiteral("grayscale(");
+      break;
+    case nsStyleFilter::Type::HueRotate:
+      aString->AssignLiteral("hue-rotate(");
+      break;
+    case nsStyleFilter::Type::Invert:
+      aString->AssignLiteral("invert(");
+      break;
+    case nsStyleFilter::Type::Opacity:
+      aString->AssignLiteral("opacity(");
+      break;
+    case nsStyleFilter::Type::Saturate:
+      aString->AssignLiteral("saturate(");
+      break;
+    case nsStyleFilter::Type::Sepia:
+      aString->AssignLiteral("sepia(");
+      break;
+    default:
+      NS_NOTREACHED("unrecognized filter type");
+  }
 }
 
 nsROCSSPrimitiveValue*
@@ -4533,17 +4532,11 @@ nsComputedDOMStyle::CreatePrimitiveValueForFilterFunction(
 
   // Filter function name and opening parenthesis.
   nsAutoString filterFunctionString;
-  AppendFilterFunctionName(filterFunctionString, aStyleFilter.mType);
-
-  if (nsStyleFilter::Type::DropShadow == aStyleFilter.mType) {
-    // FIXME(krit,mvujovic): Implement drop shadow.
-    NS_NOTREACHED("drop shadow is not implemented yet");
-    return value;
-  }
+  FilterFunctionName(&filterFunctionString, aStyleFilter.mType);
 
   // Filter function argument.
   nsAutoString argumentString;
-  SetCssTextToCoord(argumentString, aStyleFilter.mValue);
+  SetCssTextToCoord(&argumentString, aStyleFilter.mValue);
   filterFunctionString.Append(argumentString);
 
   // Filter function closing parenthesis.
