@@ -493,8 +493,8 @@ private:
 
   /* Helper functions for computing the filter property style. */
   void SetCssTextToCoord(nsAutoString* aCssText, const nsStyleCoord& aCoord);
-  nsROCSSPrimitiveValue* CreatePrimitiveValueForFilterFunction(
-    const nsStyleFilter&aStyleFilter);
+  nsROCSSPrimitiveValue* CreatePrimitiveValueForStyleFilter(
+    const nsStyleFilter& aStyleFilter);
 
 
   struct ComputedStyleMapEntry

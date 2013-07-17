@@ -4513,7 +4513,7 @@ FilterFunctionName(nsAutoString* aString, nsStyleFilter::Type mType)
 }
 
 nsROCSSPrimitiveValue*
-nsComputedDOMStyle::CreatePrimitiveValueForFilterFunction(
+nsComputedDOMStyle::CreatePrimitiveValueForStyleFilter(
   const nsStyleFilter&aStyleFilter)
 {
   nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
@@ -4554,7 +4554,7 @@ nsComputedDOMStyle::DoGetFilter()
   nsDOMCSSValueList *valueList = GetROCSSValueList(false);
   for(uint32_t i = 0; i < filter.Length(); i++) {
     nsROCSSPrimitiveValue* value =
-      CreatePrimitiveValueForFilterFunction(filter[i]);
+      CreatePrimitiveValueForStyleFilter(filter[i]);
     valueList->AppendCSSValue(value);
   }
   return valueList;
