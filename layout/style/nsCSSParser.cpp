@@ -109,6 +109,7 @@ using namespace mozilla;
 #define VARIANT_AHUO (VARIANT_AUTO | VARIANT_HUO)
 #define VARIANT_HPN  (VARIANT_INHERIT | VARIANT_PERCENT | VARIANT_NUMBER)
 #define VARIANT_PN   (VARIANT_PERCENT | VARIANT_NUMBER)
+#define VARIANT_PNCALC (VARIANT_PN | VARIANT_CALC)
 #define VARIANT_ALPN (VARIANT_AL | VARIANT_PN)
 #define VARIANT_HN   (VARIANT_INHERIT | VARIANT_NUMBER)
 #define VARIANT_HON  (VARIANT_HN | VARIANT_NONE)
@@ -117,8 +118,9 @@ using namespace mozilla;
 #define VARIANT_UK   (VARIANT_URL | VARIANT_KEYWORD)
 #define VARIANT_UO   (VARIANT_URL | VARIANT_NONE)
 #define VARIANT_ANGLE_OR_ZERO (VARIANT_ANGLE | VARIANT_ZERO_ANGLE)
-#define VARIANT_LPCALC (VARIANT_LENGTH | VARIANT_CALC | VARIANT_PERCENT)
-#define VARIANT_LNCALC (VARIANT_LENGTH | VARIANT_CALC | VARIANT_NUMBER)
+#define VARIANT_LCALC  (VARIANT_LENGTH | VARIANT_CALC)
+#define VARIANT_LPCALC (VARIANT_LCALC | VARIANT_PERCENT)
+#define VARIANT_LNCALC (VARIANT_LCALC | VARIANT_NUMBER)
 #define VARIANT_LPNCALC (VARIANT_LNCALC | VARIANT_PERCENT)
 #define VARIANT_IMAGE (VARIANT_URL | VARIANT_NONE | VARIANT_GRADIENT | \
                        VARIANT_IMAGE_RECT | VARIANT_ELEMENT)
@@ -10137,68 +10139,67 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
     return false;
   }
 
-  int32_t variantMask;
-  nsCSSKeyword keyword = nsCSSKeywords::LookupKeyword(mToken.mIdent);
-  switch(keyword) {
+  // Set up the parsing rules based on the filter function.
+  int32_t variant = VARIANT_PNCALC;
+  bool rejectNegativeArgument = true;
+  bool clampArgumentToOne = false;
+  nsCSSKeyword functionName = nsCSSKeywords::LookupKeyword(mToken.mIdent);
+  switch(functionName) {
   case eCSSKeyword_blur:
-    variantMask = VARIANT_LENGTH | VARIANT_NONNEGATIVE_DIMENSION | VARIANT_CALC;
+    variant = VARIANT_LCALC | VARIANT_NONNEGATIVE_DIMENSION;
+    // VARIANT_NONNEGATIVE_DIMENSION will already reject negative lengths.
+    rejectNegativeArgument = false;
     break;
-  case eCSSKeyword_grayscale:
   case eCSSKeyword_brightness:
   case eCSSKeyword_contrast:
-  case eCSSKeyword_invert:
-  case eCSSKeyword_opacity:
   case eCSSKeyword_saturate:
+    break;
+  case eCSSKeyword_grayscale:
+  case eCSSKeyword_invert:
   case eCSSKeyword_sepia:
-    variantMask = VARIANT_NUMBER | VARIANT_PERCENT | VARIANT_CALC;
+  case eCSSKeyword_opacity:
+    clampArgumentToOne = true;
     break;
   default:
     // Unrecognized filter function.
     return false;
   }
 
+  // Parse the function.
   uint16_t minElems = 1U;
   uint16_t maxElems = 1U;
-  if (!ParseFunction(keyword, &variantMask, 0, minElems, maxElems, aValue)) {
+  uint32_t allVariants = 0;
+  if (!ParseFunction(functionName, &variant, allVariants,
+                     minElems, maxElems, aValue)) {
     return false;
   }
 
-  NS_ABORT_IF_FALSE(aValue.GetUnit() == eCSSUnit_Function, 
+  // Get the first and only argument to the filter function.
+  NS_ABORT_IF_FALSE(aValue.GetUnit() == eCSSUnit_Function,
                     "expected a filter function");
-  NS_ABORT_IF_FALSE(aValue.UnitHasArrayValue(), 
+  NS_ABORT_IF_FALSE(aValue.UnitHasArrayValue(),
                     "filter function should be an array");
   NS_ABORT_IF_FALSE(aValue.GetArrayValue()->Count() == 2,
                     "filter function should have exactly one argument");
-
-  // Enforce a value range for the filter function argument.
-  // Note that blur radius range was enforced earlier by
-  // VARIANT_NONNEGATIVE_DIMENSION.
   nsCSSValue& arg = aValue.GetArrayValue()->Item(1);
-  switch(keyword) {
-  // These filter functions require a nonnegative number or percent.
-  case eCSSKeyword_brightness:
-  case eCSSKeyword_contrast:
-  case eCSSKeyword_saturate:
-    if (arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0) {
+
+  if (rejectNegativeArgument) {
+    if (arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0.0f) {
       return false;
     }
-    if (arg.GetUnit() == eCSSUnit_Percent && arg.GetPercentValue() < 0) {
+    if (arg.GetUnit() == eCSSUnit_Percent && arg.GetPercentValue() < 0.0f) {
       return false;
     }
-    break;
-  // These filter functions require a nonnegative number or percent,
-  // not exceeding 1.0 or 100%.
-  case eCSSKeyword_grayscale:
-  case eCSSKeyword_invert:
-  case eCSSKeyword_opacity:
-  case eCSSKeyword_sepia:
-    if (arg.GetUnit() == eCSSUnit_Number
-        && (arg.GetFloatValue() < 0.0f || arg.GetFloatValue() > 1.0f)) {
-      return false;
+  }
+
+  if (clampArgumentToOne) {
+    if (arg.GetUnit() == eCSSUnit_Number &&
+        arg.GetFloatValue() > 1.0f) {
+      arg.SetFloatValue(1.0f, arg.GetUnit());
     }
-    if (arg.GetUnit() == eCSSUnit_Percent
-        && (arg.GetPercentValue() < 0.0f || arg.GetPercentValue() > 1.0f)) {
-      return false;
+    else if (arg.GetUnit() == eCSSUnit_Percent &&
+             arg.GetPercentValue() > 1.0f) {
+      arg.SetPercentValue(1.0f);
     }
   }
 

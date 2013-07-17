@@ -3558,16 +3558,25 @@ var gCSSProperties = {
 			"grayscale(50%)",
 			"grayscale(1)",
 			"grayscale(1.0)",
+			"grayscale(2)",
+			"grayscale(350%)",
+			"grayscale(4.567)",
 
 			"invert(0)",
 			"invert(50%)",
 			"invert(1)",
 			"invert(1.0)",
+			"invert(2)",
+			"invert(350%)",
+			"invert(4.567)",
 
 			"opacity(0)",
 			"opacity(50%)",
 			"opacity(1)",
 			"opacity(1.0)",
+			"opacity(2)",
+			"opacity(350%)",
+			"opacity(4.567)",
 
 			"saturate(0)",
 			"saturate(50%)",
@@ -3581,6 +3590,9 @@ var gCSSProperties = {
 			"sepia(50%)",
 			"sepia(1)",
 			"sepia(1.0)",
+			"sepia(2)",
+			"sepia(350%)",
+			"sepia(4.567)",
 		],
 		invalid_values: [
 			// none
@@ -3633,9 +3645,6 @@ var gCSSProperties = {
 			"grayscale(#my-filter)",
 			"grayscale(10px)",
 			"grayscale(-1)",
-			"grayscale(2)",
-			"grayscale(350%)",
-			"grayscale(4.567)",
 
 			"invert()",
 			"invert(0.5 0.5)",
@@ -3644,9 +3653,6 @@ var gCSSProperties = {
 			"grayscale(#my-filter)",
 			"invert(10px)",
 			"invert(-1)",
-			"invert(2)",
-			"invert(350%)",
-			"invert(4.567)",
 
 			"opacity()",
 			"opacity(0.5 0.5)",
@@ -3655,9 +3661,6 @@ var gCSSProperties = {
 			"opacity(#my-filter)",
 			"opacity(10px)",
 			"opacity(-1)",
-			"opacity(2)",
-			"opacity(350%)",
-			"opacity(4.567)",
 
 			"saturate()",
 			"saturate(0.5 0.5)",
@@ -3674,9 +3677,6 @@ var gCSSProperties = {
 			"sepia(#my-filter)",
 			"sepia(10px)",
 			"sepia(-1)",
-			"sepia(2)",
-			"sepia(350%)",
-			"sepia(4.567)",
 		]
 	},
 	"flood-color": {
