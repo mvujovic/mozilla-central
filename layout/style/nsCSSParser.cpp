@@ -10221,7 +10221,7 @@ CSSParserImpl::ParseFilter()
   } else {
     nsCSSValueList* cur = value.SetListValue();
     while (cur) {
-      if (!ParseSingleFilter(cur->mValue)) {
+      if (!ParseSingleFilter(&cur->mValue)) {
         return false;
       }
       if (CheckEndProperty()) {

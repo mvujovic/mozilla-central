@@ -7763,8 +7763,9 @@ static void SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
 
   nsCSSValue& arg = filterFunction->Item(1);
   const nsStyleCoord dummyParentCoord;
-  bool success = SetCoord(arg, aStyleFilter->mCoord, dummyParentCoord, mask,
-                          aStyleContext, aPresContext, aCanStoreInRuleTree);
+  DebugOnly<bool> success = SetCoord(arg, aStyleFilter->mCoord,
+                                     dummyParentCoord, mask, aStyleContext,
+                                     aPresContext, aCanStoreInRuleTree);
   NS_ABORT_IF_FALSE(success, "could not resolve filter function argument");
 }
 
