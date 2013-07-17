@@ -7864,7 +7864,6 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
   switch(filterValue->GetUnit()) {
-  // FIXME(krit,mvujovic): Should we be clearing on the null case? See font-feature-settings.
   case eCSSUnit_Null:
     break;
   case eCSSUnit_None:
