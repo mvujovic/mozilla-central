@@ -109,7 +109,6 @@ using namespace mozilla;
 #define VARIANT_AHUO (VARIANT_AUTO | VARIANT_HUO)
 #define VARIANT_HPN  (VARIANT_INHERIT | VARIANT_PERCENT | VARIANT_NUMBER)
 #define VARIANT_PN   (VARIANT_PERCENT | VARIANT_NUMBER)
-#define VARIANT_PNCALC (VARIANT_PN | VARIANT_CALC)
 #define VARIANT_ALPN (VARIANT_AL | VARIANT_PN)
 #define VARIANT_HN   (VARIANT_INHERIT | VARIANT_NUMBER)
 #define VARIANT_HON  (VARIANT_HN | VARIANT_NONE)
@@ -10140,7 +10139,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
   }
 
   // Set up the parsing rules based on the filter function.
-  int32_t variant = VARIANT_PNCALC;
+  int32_t variant = VARIANT_PN;
   bool rejectNegativeArgument = true;
   bool clampArgumentToOne = false;
   nsCSSKeyword functionName = nsCSSKeywords::LookupKeyword(mToken.mIdent);
