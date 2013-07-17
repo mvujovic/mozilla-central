@@ -7735,7 +7735,7 @@ static nsStyleFilter::Type StyleFilterTypeForFunctionName(
 
 static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
                               const nsCSSValue& aValue,
-                              nsStyleContext* aStyleContext, 
+                              nsStyleContext* aStyleContext,
                               nsPresContext* aPresContext,
                               bool& aCanStoreInRuleTree)
 {
@@ -7751,7 +7751,7 @@ static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
   nsCSSValue::Array* filterFunction = aValue.GetArrayValue();
   nsCSSKeyword functionName =
     (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
-  aStyleFilter.mType = StyleFilterTypeForKeyword(functionName);
+  aStyleFilter.mType = StyleFilterTypeForFunctionName(functionName);
 
   int32_t mask = SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC;
   if (aStyleFilter.mType == nsStyleFilter::Type::kBlur)
@@ -7849,21 +7849,23 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
     break;
   case eCSSUnit_None:
   case eCSSUnit_Initial:
-    svgReset->mFilter.Clear();
+    svgReset->mFilters.Clear();
     break;
   case eCSSUnit_Inherit:
     canStoreInRuleTree = false;
-    svgReset->mFilter = parentSVGReset->mFilter;
+    svgReset->mFilters = parentSVGReset->mFilters;
     break;
   case eCSSUnit_List:
   case eCSSUnit_ListDep: {
-    svgReset->mFilter.Clear();
+    svgReset->mFilters.Clear();
     const nsCSSValueList* cur = filterValue->GetListValue();
     while(cur) {
       nsStyleFilter styleFilter;
-      CreateStyleFilter(styleFilter, cur->mValue, aContext, mPresContext, canStoreInRuleTree);
-      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::kNull, "filter should be set");
-      svgReset->mFilter.AppendElement(styleFilter);
+      CreateStyleFilter(styleFilter, cur->mValue, aContext, mPresContext,
+                        canStoreInRuleTree);
+      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::kNull,
+                        "filter should be set");
+      svgReset->mFilters.AppendElement(styleFilter);
       cur = cur->mNext;
     }
     break;

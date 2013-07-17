@@ -2302,13 +2302,17 @@ struct nsStyleSVGReset {
     return NS_CombineHint(nsChangeHint_UpdateEffects, NS_STYLE_HINT_REFLOW);
   }
 
+  // The backend only supports one SVG reference right now.
+  // Eventually, it will support multiple chained SVG reference filters and CSS
+  // filter functions.
   nsIURI* DeprecatedFilter() const {
-    return (mFilter.Length() == 1 && mFilter[0].mType == nsStyleFilter::Type::kURL) ?
-           mFilter[0].mUrl : nullptr;
+    return (mFilters.Length() == 1 &&
+            mFilters[0].mType == nsStyleFilter::Type::kURL) ?
+            mFilters[0].mUrl : nullptr;
   }
 
   nsCOMPtr<nsIURI> mClipPath;         // [reset]
-  nsTArray<nsStyleFilter> mFilter;    // [reset]
+  nsTArray<nsStyleFilter> mFilters;   // [reset]
   nsCOMPtr<nsIURI> mMask;             // [reset]
   nscolor          mStopColor;        // [reset]
   nscolor          mFloodColor;       // [reset]

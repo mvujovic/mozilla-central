@@ -4543,18 +4543,18 @@ nsComputedDOMStyle::CreatePrimitiveValueForStyleFilter(
 CSSValue*
 nsComputedDOMStyle::DoGetFilter()
 {
-  const nsTArray<nsStyleFilter>& filter = StyleSVGReset()->mFilter;
+  const nsTArray<nsStyleFilter>& filters = StyleSVGReset()->mFilters;
 
-  if (!filter.Length()) {
+  if (!filters.Length()) {
     nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
     value->SetIdent(eCSSKeyword_none);
     return value;
   }
 
   nsDOMCSSValueList *valueList = GetROCSSValueList(false);
-  for(uint32_t i = 0; i < filter.Length(); i++) {
+  for(uint32_t i = 0; i < filters.Length(); i++) {
     nsROCSSPrimitiveValue* value =
-      CreatePrimitiveValueForStyleFilter(filter[i]);
+      CreatePrimitiveValueForStyleFilter(filters[i]);
     valueList->AppendCSSValue(value);
   }
   return valueList;
