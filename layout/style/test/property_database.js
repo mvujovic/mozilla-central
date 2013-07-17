@@ -3529,6 +3529,8 @@ var gCSSProperties = {
 			"blur(3px)",
 			"blur(100px)",
 			"blur(0.1em)",
+			"blur(calc(-1px))", // Parses and becomes blur(0px).
+			"blur(calc(0px))",
 			"blur(calc(5px))",
 			"blur(calc(2 * 5px))",
 
@@ -3614,6 +3616,7 @@ var gCSSProperties = {
 			"blur(#my-filter)",
 			"blur(0.5)",
 			"blur(50%)",
+			"blur(calc(0))", // Unitless zero in calc is not a valid length.
 			"blur(calc(0.1))",
 			"blur(calc(10%))",
 			"blur(calc(20px - 5%))",
