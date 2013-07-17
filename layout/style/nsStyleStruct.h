@@ -2267,23 +2267,20 @@ struct nsStyleFilter {
   enum Type {
     kNull,
     kURL,
+    kBlur,
+    kBrightness,
+    kContrast,
+    kInvert,
+    kOpacity,
     kGrayscale,
     kSaturate,
     kSepia,
-    kInvert,
-    kOpacity,
-    kBrightness,
-    kContrast,
-    kHueRotate,
-    kBlur,
-    kDropShadow
   };
 
   Type mType;
   union {
     nsIURI *mUrl;
     nsStyleCoord mValue;
-    nsCSSShadowItem mShadow;
   };
 };
 

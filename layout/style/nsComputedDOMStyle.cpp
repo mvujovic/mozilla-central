@@ -4492,14 +4492,8 @@ FilterFunctionName(nsAutoString* aString, nsStyleFilter::Type mType)
     case nsStyleFilter::Type::kContrast:
       aString->AssignLiteral("contrast(");
       break;
-    case nsStyleFilter::Type::kDropShadow:
-      aString->AssignLiteral("drop-shadow(");
-      break;
     case nsStyleFilter::Type::kGrayscale:
       aString->AssignLiteral("grayscale(");
-      break;
-    case nsStyleFilter::Type::kHueRotate:
-      aString->AssignLiteral("hue-rotate(");
       break;
     case nsStyleFilter::Type::kInvert:
       aString->AssignLiteral("invert(");

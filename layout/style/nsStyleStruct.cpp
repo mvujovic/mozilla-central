@@ -1016,8 +1016,6 @@ nsStyleFilter::nsStyleFilter(const nsStyleFilter& aSource)
 
   if (mType == kURL)
     mUrl = aSource.mUrl;
-  else if (mType == kDropShadow)
-    mShadow = aSource.mShadow;
   else if (mType != kNull)
     mValue = aSource.mValue;
 }

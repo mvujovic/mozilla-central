@@ -7707,21 +7707,18 @@ nsRuleNode::ComputeSVGData(void* aStartStruct,
   COMPUTE_END_INHERITED(SVG, svg)
 }
 
-static nsStyleFilter::Type StyleFilterTypeForKeyword(nsCSSKeyword keyword)
+static nsStyleFilter::Type StyleFilterTypeForFunctionName(
+  nsCSSKeyword functionName)
 {
-  switch(keyword) {
+  switch(functionName) {
   case eCSSKeyword_blur:
     return nsStyleFilter::Type::kBlur;
   case eCSSKeyword_brightness:
     return nsStyleFilter::Type::kBrightness;
   case eCSSKeyword_contrast:
     return nsStyleFilter::Type::kContrast;
-  case eCSSKeyword_drop_shadow:
-    return nsStyleFilter::Type::kDropShadow;
   case eCSSKeyword_grayscale:
     return nsStyleFilter::Type::kGrayscale;
-  case eCSSKeyword_hue_rotate:
-    return nsStyleFilter::Type::kHueRotate;
   case eCSSKeyword_invert:
     return nsStyleFilter::Type::kInvert;
   case eCSSKeyword_opacity:
@@ -7752,38 +7749,22 @@ static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
   NS_ABORT_IF_FALSE(unit == eCSSUnit_Function, "expected a filter function");
 
   nsCSSValue::Array* filterFunction = aValue.GetArrayValue();
-  nsCSSKeyword keyword = (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
-  aStyleFilter.mType = StyleFilterTypeForKeyword(keyword);
+  nsCSSKeyword functionName =
+    (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
+  aStyleFilter.mType = StyleFilterTypeForKeyword(functionName);
 
-  if (nsStyleFilter::Type::kDropShadow == aStyleFilter.mType) {
-    NS_NOTREACHED("drop shadow is not implemented yet");
-    return;
-  }
+  int32_t mask = SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC;
+  if (aStyleFilter.mType == nsStyleFilter::Type::kBlur)
+    mask = SETCOORD_LP | SETCOORD_STORE_CALC;
 
-  int32_t mask = 0;
-  switch (aStyleFilter.mType) {
-  case nsStyleFilter::Type::kBlur:
-    mask |= (SETCOORD_LP | SETCOORD_STORE_CALC);
-    break;
-  case nsStyleFilter::Type::kHueRotate:
-    NS_NOTREACHED("hue rotate is not implemented yet");
-    break;
-  case nsStyleFilter::Type::kDropShadow:
-    NS_NOTREACHED("drop shadow should have been handled already");
-    break;
-  default:
-    mask |= (SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC);
-  }
-
-  NS_ABORT_IF_FALSE(filterFunction->Count() == 2, 
+  NS_ABORT_IF_FALSE(filterFunction->Count() == 2,
                     "all filter functions except drop-shadow should have "
                     "exactly one argument");
 
-  nsCSSValue& firstArgument = filterFunction->Item(1);
+  nsCSSValue& arg = filterFunction->Item(1);
   const nsStyleCoord dummyParentCoord;
-  bool success = SetCoord(firstArgument, aStyleFilter.mValue, dummyParentCoord,
-                          mask, aStyleContext, aPresContext,
-                          aCanStoreInRuleTree);
+  bool success = SetCoord(arg, aStyleFilter.mValue, dummyParentCoord, mask,
+                          aStyleContext, aPresContext, aCanStoreInRuleTree);
   NS_ABORT_IF_FALSE(success, "could not resolve filter function argument");
 }
 
