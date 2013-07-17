@@ -689,7 +689,7 @@ protected:
 
   /* Functions for filter parsing */
   bool ParseFilter();
-  bool ParseSingleFilter(nsCSSValue& aValue);
+  bool ParseSingleFilter(nsCSSValue* aValue);
 
   /* Find and return the namespace ID associated with aPrefix.
      If aPrefix has not been declared in an @namespace rule, returns
@@ -10125,9 +10125,9 @@ bool CSSParserImpl::ParseTransformOrigin(bool aPerspective)
  * error if something goes wrong.
  */
 bool
-CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
+CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
 {
-  if (ParseVariant(aValue, VARIANT_URL, nullptr)) {
+  if (ParseVariant(*aValue, VARIANT_URL, nullptr)) {
     return true;
   }
 
@@ -10170,18 +10170,18 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue& aValue)
   uint16_t maxElems = 1U;
   uint32_t allVariants = 0;
   if (!ParseFunction(functionName, &variant, allVariants,
-                     minElems, maxElems, aValue)) {
+                     minElems, maxElems, *aValue)) {
     return false;
   }
 
   // Get the first and only argument to the filter function.
-  NS_ABORT_IF_FALSE(aValue.GetUnit() == eCSSUnit_Function,
+  NS_ABORT_IF_FALSE(aValue->GetUnit() == eCSSUnit_Function,
                     "expected a filter function");
-  NS_ABORT_IF_FALSE(aValue.UnitHasArrayValue(),
+  NS_ABORT_IF_FALSE(aValue->UnitHasArrayValue(),
                     "filter function should be an array");
-  NS_ABORT_IF_FALSE(aValue.GetArrayValue()->Count() == 2,
+  NS_ABORT_IF_FALSE(aValue->GetArrayValue()->Count() == 2,
                     "filter function should have exactly one argument");
-  nsCSSValue& arg = aValue.GetArrayValue()->Item(1);
+  nsCSSValue& arg = aValue->GetArrayValue()->Item(1);
 
   if (rejectNegativeArgument) {
     if (arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0.0f) {
