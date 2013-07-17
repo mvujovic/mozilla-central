@@ -7882,35 +7882,15 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
     while(cur) {
       nsStyleFilter styleFilter;
       CreateStyleFilter(styleFilter, cur->mValue, aContext, mPresContext, canStoreInRuleTree);
-      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::kNull, "style filter should be set");
+      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::kNull, "filter should be set");
       svgReset->mFilter.AppendElement(styleFilter);
       cur = cur->mNext;
     }
     break;
   }
   default:
-    NS_ABORT_IF_FALSE(false, "unexpected css value unit");
+    NS_NOTREACHED("unexpected css value unit");
   }
-
-  // const nsCSSValue* filterValue = aRuleData->ValueForFilter();
-  // if (eCSSUnit_List == filterValue->GetUnit() || eCSSUnit_ListDep == filterValue->GetUnit()) {
-  //   const nsCSSValueList* filterValueList = filterValue->GetListValue();
-  //   if (eCSSUnit_URL == filterValueList->mValue.GetUnit()) {
-  //     svgReset->mFilter.Clear();
-  //     nsStyleFilter styleFilter;
-  //     styleFilter.mType = nsStyleFilter::Type::kURL;
-  //     styleFilter.mUrl = filterValueList->mValue.GetURLValue();
-  //     svgReset->mFilter.AppendElement(styleFilter);
-  //   } else {
-  //     NS_NOTREACHED("filter css value list should only have urls right now");
-  //   }
-  // } else if (eCSSUnit_None == filterValue->GetUnit() ||
-  //            eCSSUnit_Initial == filterValue->GetUnit()) {
-  //   svgReset->mFilter.Clear();
-  // } else if (eCSSUnit_Inherit == filterValue->GetUnit()) {
-  //   canStoreInRuleTree = false;
-  //   svgReset->mFilter = parentSVGReset->mFilter;
-  // }
 
   // mask: url, none, inherit
   const nsCSSValue* maskValue = aRuleData->ValueForMask();
