@@ -2279,7 +2279,7 @@ struct nsStyleFilter {
   Type mType;
   union {
     nsIURI *mUrl;
-    nsStyleCoord mValue;
+    nsStyleCoord mCoord;
     // FIXME: Add a nsCSSShadowItem when we implement drop shadow.
   };
 };

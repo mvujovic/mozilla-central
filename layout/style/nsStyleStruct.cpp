@@ -1017,7 +1017,7 @@ nsStyleFilter::nsStyleFilter(const nsStyleFilter& aSource)
   if (mType == kURL)
     mUrl = aSource.mUrl;
   else if (mType != kNull)
-    mValue = aSource.mValue;
+    mCoord = aSource.mCoord;
 }
 
 nsStyleFilter::~nsStyleFilter()

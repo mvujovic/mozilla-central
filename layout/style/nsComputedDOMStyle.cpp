@@ -4530,7 +4530,7 @@ nsComputedDOMStyle::CreatePrimitiveValueForStyleFilter(
 
   // Filter function argument.
   nsAutoString argumentString;
-  SetCssTextToCoord(&argumentString, aStyleFilter.mValue);
+  SetCssTextToCoord(&argumentString, aStyleFilter.mCoord);
   filterFunctionString.Append(argumentString);
 
   // Filter function closing parenthesis.
