@@ -4551,7 +4551,7 @@ nsComputedDOMStyle::DoGetFilter()
     return value;
   }
 
-  nsDOMCSSValueList *valueList = GetROCSSValueList(false);
+  nsDOMCSSValueList* valueList = GetROCSSValueList(false);
   for(uint32_t i = 0; i < filters.Length(); i++) {
     nsROCSSPrimitiveValue* value =
       CreatePrimitiveValueForStyleFilter(filters[i]);
