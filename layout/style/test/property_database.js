@@ -3538,14 +3538,6 @@ var gCSSProperties = {
 			"brightness(350%)",
 			"brightness(4.567)",
 
-			"brightness(0)",
-			"brightness(50%)",
-			"brightness(1)",
-			"brightness(1.0)",
-			"brightness(2)",
-			"brightness(350%)",
-			"brightness(4.567)",
-
 			"contrast(0)",
 			"contrast(50%)",
 			"contrast(1)",
@@ -3650,7 +3642,7 @@ var gCSSProperties = {
 			"invert(0.5 0.5)",
 			"invert(0.5,)",
 			"invert(0.5, 0.5)",
-			"grayscale(#my-filter)",
+			"invert(#my-filter)",
 			"invert(10px)",
 			"invert(-1)",
 
