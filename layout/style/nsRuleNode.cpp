@@ -7733,16 +7733,16 @@ static nsStyleFilter::Type StyleFilterTypeForFunctionName(
   }
 }
 
-static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
-                              const nsCSSValue& aValue,
-                              nsStyleContext* aStyleContext,
-                              nsPresContext* aPresContext,
-                              bool& aCanStoreInRuleTree)
+static void SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
+                                     const nsCSSValue& aValue,
+                                     nsStyleContext* aStyleContext,
+                                     nsPresContext* aPresContext,
+                                     bool& aCanStoreInRuleTree)
 {
   nsCSSUnit unit = aValue.GetUnit();
   if (unit == eCSSUnit_URL) {
-    aStyleFilter.mType = nsStyleFilter::Type::kURL;
-    aStyleFilter.mUrl = aValue.GetURLValue();
+    aStyleFilter->mType = nsStyleFilter::Type::kURL;
+    aStyleFilter->mUrl = aValue.GetURLValue();
     return;
   }
 
@@ -7751,10 +7751,10 @@ static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
   nsCSSValue::Array* filterFunction = aValue.GetArrayValue();
   nsCSSKeyword functionName =
     (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
-  aStyleFilter.mType = StyleFilterTypeForFunctionName(functionName);
+  aStyleFilter->mType = StyleFilterTypeForFunctionName(functionName);
 
   int32_t mask = SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC;
-  if (aStyleFilter.mType == nsStyleFilter::Type::kBlur)
+  if (aStyleFilter->mType == nsStyleFilter::Type::kBlur)
     mask = SETCOORD_LP | SETCOORD_STORE_CALC;
 
   NS_ABORT_IF_FALSE(filterFunction->Count() == 2,
@@ -7763,7 +7763,7 @@ static void CreateStyleFilter(nsStyleFilter& aStyleFilter,
 
   nsCSSValue& arg = filterFunction->Item(1);
   const nsStyleCoord dummyParentCoord;
-  bool success = SetCoord(arg, aStyleFilter.mCoord, dummyParentCoord, mask,
+  bool success = SetCoord(arg, aStyleFilter->mCoord, dummyParentCoord, mask,
                           aStyleContext, aPresContext, aCanStoreInRuleTree);
   NS_ABORT_IF_FALSE(success, "could not resolve filter function argument");
 }
@@ -7861,8 +7861,8 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
     const nsCSSValueList* cur = filterValue->GetListValue();
     while(cur) {
       nsStyleFilter styleFilter;
-      CreateStyleFilter(styleFilter, cur->mValue, aContext, mPresContext,
-                        canStoreInRuleTree);
+      SetStyleFilterToCSSValue(&styleFilter, cur->mValue, aContext,
+                               mPresContext, canStoreInRuleTree);
       NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::kNull,
                         "filter should be set");
       svgReset->mFilters.AppendElement(styleFilter);
