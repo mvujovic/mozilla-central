@@ -4514,7 +4514,7 @@ FilterFunctionName(nsAutoString* aString, nsStyleFilter::Type mType)
 
 nsROCSSPrimitiveValue*
 nsComputedDOMStyle::CreatePrimitiveValueForStyleFilter(
-  const nsStyleFilter&aStyleFilter)
+  const nsStyleFilter& aStyleFilter)
 {
   nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
 
