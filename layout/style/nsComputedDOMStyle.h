@@ -496,7 +496,6 @@ private:
   nsROCSSPrimitiveValue* CreatePrimitiveValueForStyleFilter(
     const nsStyleFilter& aStyleFilter);
 
-
   struct ComputedStyleMapEntry
   {
     // Create a pointer-to-member-function type.

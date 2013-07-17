@@ -1055,7 +1055,7 @@ nsStyleSVGReset::nsStyleSVGReset(const nsStyleSVGReset& aSource)
   mFloodColor = aSource.mFloodColor;
   mLightingColor = aSource.mLightingColor;
   mClipPath = aSource.mClipPath;
-  mFilter = aSource.mFilter;
+  mFilters = aSource.mFilters;
   mMask = aSource.mMask;
   mStopOpacity = aSource.mStopOpacity;
   mFloodOpacity = aSource.mFloodOpacity;
