@@ -2258,7 +2258,6 @@ struct nsStyleSVG {
   bool mStrokeWidthFromObject       : 1;
 };
 
-// FIXME(krit,mvujovic): Rename this to nsStyleFilterFunction or something?
 struct nsStyleFilter {
   nsStyleFilter();
   nsStyleFilter(const nsStyleFilter& aSource);
@@ -2281,6 +2280,7 @@ struct nsStyleFilter {
   union {
     nsIURI *mUrl;
     nsStyleCoord mValue;
+    // FIXME: Add a nsCSSShadowItem when we implement drop shadow.
   };
 };
 
