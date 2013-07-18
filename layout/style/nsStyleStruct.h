@@ -2264,16 +2264,16 @@ struct nsStyleFilter {
   ~nsStyleFilter();
 
   enum Type {
-    kNull,
-    kURL,
-    kBlur,
-    kBrightness,
-    kContrast,
-    kInvert,
-    kOpacity,
-    kGrayscale,
-    kSaturate,
-    kSepia,
+    eNull,
+    eURL,
+    eBlur,
+    eBrightness,
+    eContrast,
+    eInvert,
+    eOpacity,
+    eGrayscale,
+    eSaturate,
+    eSepia,
   };
 
   Type mType;
@@ -2307,7 +2307,7 @@ struct nsStyleSVGReset {
   // filter functions.
   nsIURI* DeprecatedFilter() const {
     return (mFilters.Length() == 1 &&
-            mFilters[0].mType == nsStyleFilter::Type::kURL) ?
+            mFilters[0].mType == nsStyleFilter::Type::eURL) ?
             mFilters[0].mUrl : nullptr;
   }
 

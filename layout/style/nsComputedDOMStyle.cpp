@@ -4483,28 +4483,28 @@ static void
 FilterFunctionName(nsAutoString* aString, nsStyleFilter::Type mType)
 {
   switch(mType) {
-    case nsStyleFilter::Type::kBlur:
+    case nsStyleFilter::Type::eBlur:
       aString->AssignLiteral("blur(");
       break;
-    case nsStyleFilter::Type::kBrightness:
+    case nsStyleFilter::Type::eBrightness:
       aString->AssignLiteral("brightness(");
       break;
-    case nsStyleFilter::Type::kContrast:
+    case nsStyleFilter::Type::eContrast:
       aString->AssignLiteral("contrast(");
       break;
-    case nsStyleFilter::Type::kGrayscale:
+    case nsStyleFilter::Type::eGrayscale:
       aString->AssignLiteral("grayscale(");
       break;
-    case nsStyleFilter::Type::kInvert:
+    case nsStyleFilter::Type::eInvert:
       aString->AssignLiteral("invert(");
       break;
-    case nsStyleFilter::Type::kOpacity:
+    case nsStyleFilter::Type::eOpacity:
       aString->AssignLiteral("opacity(");
       break;
-    case nsStyleFilter::Type::kSaturate:
+    case nsStyleFilter::Type::eSaturate:
       aString->AssignLiteral("saturate(");
       break;
-    case nsStyleFilter::Type::kSepia:
+    case nsStyleFilter::Type::eSepia:
       aString->AssignLiteral("sepia(");
       break;
     default:
@@ -4519,7 +4519,7 @@ nsComputedDOMStyle::CreatePrimitiveValueForStyleFilter(
   nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
 
   // Handle url().
-  if (nsStyleFilter::Type::kURL == aStyleFilter.mType) {
+  if (nsStyleFilter::Type::eURL == aStyleFilter.mType) {
     value->SetURI(aStyleFilter.mUrl);
     return value;
   }

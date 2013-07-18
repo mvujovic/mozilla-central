@@ -7712,24 +7712,24 @@ static nsStyleFilter::Type StyleFilterTypeForFunctionName(
 {
   switch(functionName) {
   case eCSSKeyword_blur:
-    return nsStyleFilter::Type::kBlur;
+    return nsStyleFilter::Type::eBlur;
   case eCSSKeyword_brightness:
-    return nsStyleFilter::Type::kBrightness;
+    return nsStyleFilter::Type::eBrightness;
   case eCSSKeyword_contrast:
-    return nsStyleFilter::Type::kContrast;
+    return nsStyleFilter::Type::eContrast;
   case eCSSKeyword_grayscale:
-    return nsStyleFilter::Type::kGrayscale;
+    return nsStyleFilter::Type::eGrayscale;
   case eCSSKeyword_invert:
-    return nsStyleFilter::Type::kInvert;
+    return nsStyleFilter::Type::eInvert;
   case eCSSKeyword_opacity:
-    return nsStyleFilter::Type::kOpacity;
+    return nsStyleFilter::Type::eOpacity;
   case eCSSKeyword_saturate:
-    return nsStyleFilter::Type::kSaturate;
+    return nsStyleFilter::Type::eSaturate;
   case eCSSKeyword_sepia:
-    return nsStyleFilter::Type::kSepia;
+    return nsStyleFilter::Type::eSepia;
   default:
     NS_NOTREACHED("Unknown filter type.");
-    return nsStyleFilter::Type::kNull;
+    return nsStyleFilter::Type::eNull;
   }
 }
 
@@ -7741,7 +7741,7 @@ static void SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
 {
   nsCSSUnit unit = aValue.GetUnit();
   if (unit == eCSSUnit_URL) {
-    aStyleFilter->mType = nsStyleFilter::Type::kURL;
+    aStyleFilter->mType = nsStyleFilter::Type::eURL;
     aStyleFilter->mUrl = aValue.GetURLValue();
     return;
   }
@@ -7754,7 +7754,7 @@ static void SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
   aStyleFilter->mType = StyleFilterTypeForFunctionName(functionName);
 
   int32_t mask = SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC;
-  if (aStyleFilter->mType == nsStyleFilter::Type::kBlur)
+  if (aStyleFilter->mType == nsStyleFilter::Type::eBlur)
     mask = SETCOORD_LP | SETCOORD_STORE_CALC;
 
   NS_ABORT_IF_FALSE(filterFunction->Count() == 2,
@@ -7864,7 +7864,7 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
       nsStyleFilter styleFilter;
       SetStyleFilterToCSSValue(&styleFilter, cur->mValue, aContext,
                                mPresContext, canStoreInRuleTree);
-      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::kNull,
+      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::eNull,
                         "filter should be set");
       svgReset->mFilters.AppendElement(styleFilter);
       cur = cur->mNext;

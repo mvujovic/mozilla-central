@@ -1004,7 +1004,7 @@ nsChangeHint nsStyleSVG::CalcDifference(const nsStyleSVG& aOther) const
 // nsStyleFilter
 //
 nsStyleFilter::nsStyleFilter()
-  : mType(kNull)
+  : mType(eNull)
 {
   MOZ_COUNT_CTOR(nsStyleFilter);
 }
@@ -1014,9 +1014,9 @@ nsStyleFilter::nsStyleFilter(const nsStyleFilter& aSource)
 {
   MOZ_COUNT_CTOR(nsStyleFilter);
 
-  if (mType == kURL)
+  if (mType == eURL)
     mUrl = aSource.mUrl;
-  else if (mType != kNull)
+  else if (mType != eNull)
     mCoord = aSource.mCoord;
 }
 

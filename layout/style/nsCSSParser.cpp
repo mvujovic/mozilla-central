@@ -10120,20 +10120,6 @@ bool CSSParserImpl::ParseTransformOrigin(bool aPerspective)
   return true;
 }
 
-/* When CSS Filters are enabled, the filter property accepts one or more SVG
- * reference filters and/or CSS filter functions.
- * e.g. filter: url(#my-filter-1) blur(3px) url(#my-filter-2) grayscale(50%);
- *
- * When CSS Filters are disabled, the filter property only accepts one SVG
- * reference filter.
- * e.g. filter: url(#my-filter);
- */
-static bool
-CSSFiltersEnabled()
-{
-  return Preferences::GetBool("layout.css.filters.enabled");
-}
-
 /* Reads a single url or filter function from the tokenizer stream, reporting an
  * error if something goes wrong.
  */
@@ -10144,7 +10130,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
     return true;
   }
 
-  if (!CSSFiltersEnabled()) {
+  if (!nsLayoutUtils::CSSFiltersEnabled()) {
     // With CSS Filters disabled, we should only accept an SVG reference filter.
     return false;
   }
@@ -10226,6 +10212,14 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
 
 /* Parses a filter property value by continuously reading in urls and/or filter
  * functions and constructing a list.
+ *
+ * When CSS Filters are enabled, the filter property accepts one or more SVG
+ * reference filters and/or CSS filter functions.
+ * e.g. filter: url(#my-filter-1) blur(3px) url(#my-filter-2) grayscale(50%);
+ *
+ * When CSS Filters are disabled, the filter property only accepts one SVG
+ * reference filter.
+ * e.g. filter: url(#my-filter);
  */
 bool
 CSSParserImpl::ParseFilter()
@@ -10245,7 +10239,7 @@ CSSParserImpl::ParseFilter()
       if (CheckEndProperty()) {
         break;
       }
-      if (!CSSFiltersEnabled()) {
+      if (!nsLayoutUtils::CSSFiltersEnabled()) {
         // With CSS Filters disabled, we should only accept one SVG reference
         // filter.
         return false;
