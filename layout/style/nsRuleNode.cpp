@@ -7753,9 +7753,9 @@ static void SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
     (nsCSSKeyword)filterFunction->Item(0).GetIntValue();
   aStyleFilter->mType = StyleFilterTypeForFunctionName(functionName);
 
-  int32_t mask = SETCOORD_FACTOR | SETCOORD_PERCENT | SETCOORD_STORE_CALC;
+  int32_t mask = SETCOORD_PERCENT | SETCOORD_FACTOR;
   if (aStyleFilter->mType == nsStyleFilter::Type::eBlur)
-    mask = SETCOORD_LP | SETCOORD_STORE_CALC;
+    mask = SETCOORD_LENGTH | SETCOORD_STORE_CALC;
 
   NS_ABORT_IF_FALSE(filterFunction->Count() == 2,
                     "all filter functions except drop-shadow should have "
