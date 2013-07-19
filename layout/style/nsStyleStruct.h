@@ -2280,7 +2280,7 @@ struct nsStyleFilter {
 
   Type mType;
   union {
-    nsIURI* mUrl;
+    nsIURI* mURL;
     nsStyleCoord mCoord;
     // FIXME: Add a nsCSSShadowItem when we implement drop shadow.
   };
@@ -2310,7 +2310,7 @@ struct nsStyleSVGReset {
   nsIURI* DeprecatedFilter() const {
     return (mFilters.Length() == 1 &&
             mFilters[0].mType == nsStyleFilter::Type::eURL) ?
-            mFilters[0].mUrl : nullptr;
+            mFilters[0].mURL : nullptr;
   }
 
   nsCOMPtr<nsIURI> mClipPath;         // [reset]

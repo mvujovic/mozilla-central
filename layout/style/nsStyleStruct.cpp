@@ -1015,7 +1015,7 @@ nsStyleFilter::nsStyleFilter(const nsStyleFilter& aSource)
   MOZ_COUNT_CTOR(nsStyleFilter);
 
   if (mType == eURL) {
-    mUrl = aSource.mUrl;
+    mURL = aSource.mURL;
   } else if (mType != eNull) {
     mCoord = aSource.mCoord;
   }
@@ -1034,7 +1034,7 @@ nsStyleFilter::operator==(const nsStyleFilter& aOther) const
   }
 
   if (mType == eURL) {
-    return EqualURIs(mUrl, aOther.mUrl);
+    return EqualURIs(mURL, aOther.mURL);
   } else if (mType != eNull) {
     return mCoord == aOther.mCoord;
   }

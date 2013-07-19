@@ -4520,7 +4520,7 @@ nsComputedDOMStyle::CreatePrimitiveValueForStyleFilter(
 
   // Handle url().
   if (nsStyleFilter::Type::eURL == aStyleFilter.mType) {
-    value->SetURI(aStyleFilter.mUrl);
+    value->SetURI(aStyleFilter.mURL);
     return value;
   }
 

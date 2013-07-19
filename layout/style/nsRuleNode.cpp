@@ -7743,7 +7743,7 @@ SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
   nsCSSUnit unit = aValue.GetUnit();
   if (unit == eCSSUnit_URL) {
     aStyleFilter->mType = nsStyleFilter::Type::eURL;
-    aStyleFilter->mUrl = aValue.GetURLValue();
+    aStyleFilter->mURL = aValue.GetURLValue();
     return;
   }
 
@@ -7763,11 +7763,10 @@ SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
                     "exactly one argument");
 
   nsCSSValue& arg = filterFunction->Item(1);
-  const nsStyleCoord dummyParentCoord;
-  DebugOnly<bool> success = SetCoord(arg, aStyleFilter->mCoord,
-                                     dummyParentCoord, mask, aStyleContext,
-                                     aPresContext, aCanStoreInRuleTree);
-  NS_ABORT_IF_FALSE(success, "could not resolve filter function argument");
+  DebugOnly<bool> success = SetCoord(arg, aStyleFilter->mCoord, nsStyleCoord(),
+                                     mask, aStyleContext, aPresContext,
+                                     aCanStoreInRuleTree);
+  NS_ABORT_IF_FALSE(success, "unexpected unit");
 }
 
 const void*
@@ -7846,34 +7845,34 @@ nsRuleNode::ComputeSVGResetData(void* aStartStruct,
 
   // filter: url, none, inherit
   const nsCSSValue* filterValue = aRuleData->ValueForFilter();
-  switch(filterValue->GetUnit()) {
-  case eCSSUnit_Null:
-    break;
-  case eCSSUnit_None:
-  case eCSSUnit_Initial:
-    svgReset->mFilters.Clear();
-    break;
-  case eCSSUnit_Inherit:
-    canStoreInRuleTree = false;
-    svgReset->mFilters = parentSVGReset->mFilters;
-    break;
-  case eCSSUnit_List:
-  case eCSSUnit_ListDep: {
-    svgReset->mFilters.Clear();
-    const nsCSSValueList* cur = filterValue->GetListValue();
-    while(cur) {
-      nsStyleFilter styleFilter;
-      SetStyleFilterToCSSValue(&styleFilter, cur->mValue, aContext,
-                               mPresContext, canStoreInRuleTree);
-      NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::eNull,
-                        "filter should be set");
-      svgReset->mFilters.AppendElement(styleFilter);
-      cur = cur->mNext;
+  switch (filterValue->GetUnit()) {
+    case eCSSUnit_Null:
+      break;
+    case eCSSUnit_None:
+    case eCSSUnit_Initial:
+      svgReset->mFilters.Clear();
+      break;
+    case eCSSUnit_Inherit:
+      canStoreInRuleTree = false;
+      svgReset->mFilters = parentSVGReset->mFilters;
+      break;
+    case eCSSUnit_List:
+    case eCSSUnit_ListDep: {
+      svgReset->mFilters.Clear();
+      const nsCSSValueList* cur = filterValue->GetListValue();
+      while(cur) {
+        nsStyleFilter styleFilter;
+        SetStyleFilterToCSSValue(&styleFilter, cur->mValue, aContext,
+                                 mPresContext, canStoreInRuleTree);
+        NS_ABORT_IF_FALSE(styleFilter.mType != nsStyleFilter::Type::eNull,
+                          "filter should be set");
+        svgReset->mFilters.AppendElement(styleFilter);
+        cur = cur->mNext;
+      }
+      break;
     }
-    break;
-  }
-  default:
-    NS_NOTREACHED("unexpected css value unit");
+    default:
+      NS_NOTREACHED("unexpected unit");
   }
 
   // mask: url, none, inherit
