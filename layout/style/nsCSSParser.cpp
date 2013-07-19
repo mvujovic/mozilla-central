@@ -10120,7 +10120,8 @@ bool CSSParserImpl::ParseTransformOrigin(bool aPerspective)
   return true;
 }
 
-/* Reads a single url or filter function from the tokenizer stream, reporting an
+/**
+ * Reads a single url or filter function from the tokenizer stream, reporting an
  * error if something goes wrong.
  */
 bool
@@ -10132,14 +10133,17 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
 
   if (!nsLayoutUtils::CSSFiltersEnabled()) {
     // With CSS Filters disabled, we should only accept an SVG reference filter.
+    REPORT_UNEXPECTED_TOKEN(PEExpectedURL);
     return false;
   }
 
   if (!GetToken(true)) {
+    REPORT_UNEXPECTED_EOF(PEFilterEOF);
     return false;
   }
 
   if (mToken.mType != eCSSToken_Function) {
+    REPORT_UNEXPECTED_TOKEN(PEExpectedURLOrFilterFunction);
     return false;
   }
 
@@ -10166,6 +10170,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
     break;
   default:
     // Unrecognized filter function.
+    REPORT_UNEXPECTED_TOKEN(PEExpectedURLOrFilterFunction);
     return false;
   }
 
@@ -10175,6 +10180,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
   uint32_t allVariants = 0;
   if (!ParseFunction(functionName, &variant, allVariants,
                      minElems, maxElems, *aValue)) {
+    REPORT_UNEXPECTED(PEUnexpectedFunctionArguments);
     return false;
   }
 
@@ -10187,13 +10193,11 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
                     "filter function should have exactly one argument");
   nsCSSValue& arg = aValue->GetArrayValue()->Item(1);
 
-  if (rejectNegativeArgument) {
-    if (arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0.0f) {
-      return false;
-    }
-    if (arg.GetUnit() == eCSSUnit_Percent && arg.GetPercentValue() < 0.0f) {
-      return false;
-    }
+  if (rejectNegativeArgument &&
+      ((arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0.0f) ||
+       (arg.GetUnit() == eCSSUnit_Percent && arg.GetPercentValue() < 0.0f))) {
+    REPORT_UNEXPECTED(PENegativeFilterFunctionArgument);
+    return false;
   }
 
   if (clampArgumentToOne) {
@@ -10242,6 +10246,7 @@ CSSParserImpl::ParseFilter()
       if (!nsLayoutUtils::CSSFiltersEnabled()) {
         // With CSS Filters disabled, we should only accept one SVG reference
         // filter.
+        REPORT_UNEXPECTED_TOKEN(PEExpectEndValue);
         return false;
       }
       cur->mNext = new nsCSSValueList;
