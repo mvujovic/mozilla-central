@@ -2307,7 +2307,7 @@ struct nsStyleSVGReset {
   // The backend only supports one SVG reference right now.
   // Eventually, it will support multiple chained SVG reference filters and CSS
   // filter functions.
-  nsIURI* DeprecatedFilter() const {
+  nsIURI* SingleFilter() const {
     return (mFilters.Length() == 1 &&
             mFilters[0].mType == nsStyleFilter::Type::eURL) ?
             mFilters[0].mURL : nullptr;
