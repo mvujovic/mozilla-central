@@ -492,7 +492,7 @@ private:
   bool GetFrameBorderRectHeight(nscoord& aHeight);
 
   /* Helper functions for computing the filter property style. */
-  void SetCssTextToCoord(nsAutoString* aCssText, const nsStyleCoord& aCoord);
+  void SetCssTextToCoord(nsAString& aCssText, const nsStyleCoord& aCoord);
   nsROCSSPrimitiveValue* CreatePrimitiveValueForStyleFilter(
     const nsStyleFilter& aStyleFilter);
 

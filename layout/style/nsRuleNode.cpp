@@ -7707,37 +7707,38 @@ nsRuleNode::ComputeSVGData(void* aStartStruct,
   COMPUTE_END_INHERITED(SVG, svg)
 }
 
-static nsStyleFilter::Type StyleFilterTypeForFunctionName(
-  nsCSSKeyword functionName)
+static nsStyleFilter::Type
+StyleFilterTypeForFunctionName(nsCSSKeyword functionName)
 {
-  switch(functionName) {
-  case eCSSKeyword_blur:
-    return nsStyleFilter::Type::eBlur;
-  case eCSSKeyword_brightness:
-    return nsStyleFilter::Type::eBrightness;
-  case eCSSKeyword_contrast:
-    return nsStyleFilter::Type::eContrast;
-  case eCSSKeyword_grayscale:
-    return nsStyleFilter::Type::eGrayscale;
-  case eCSSKeyword_invert:
-    return nsStyleFilter::Type::eInvert;
-  case eCSSKeyword_opacity:
-    return nsStyleFilter::Type::eOpacity;
-  case eCSSKeyword_saturate:
-    return nsStyleFilter::Type::eSaturate;
-  case eCSSKeyword_sepia:
-    return nsStyleFilter::Type::eSepia;
-  default:
-    NS_NOTREACHED("Unknown filter type.");
-    return nsStyleFilter::Type::eNull;
+  switch (functionName) {
+    case eCSSKeyword_blur:
+      return nsStyleFilter::Type::eBlur;
+    case eCSSKeyword_brightness:
+      return nsStyleFilter::Type::eBrightness;
+    case eCSSKeyword_contrast:
+      return nsStyleFilter::Type::eContrast;
+    case eCSSKeyword_grayscale:
+      return nsStyleFilter::Type::eGrayscale;
+    case eCSSKeyword_invert:
+      return nsStyleFilter::Type::eInvert;
+    case eCSSKeyword_opacity:
+      return nsStyleFilter::Type::eOpacity;
+    case eCSSKeyword_saturate:
+      return nsStyleFilter::Type::eSaturate;
+    case eCSSKeyword_sepia:
+      return nsStyleFilter::Type::eSepia;
+    default:
+      NS_NOTREACHED("Unknown filter type.");
+      return nsStyleFilter::Type::eNull;
   }
 }
 
-static void SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
-                                     const nsCSSValue& aValue,
-                                     nsStyleContext* aStyleContext,
-                                     nsPresContext* aPresContext,
-                                     bool& aCanStoreInRuleTree)
+static void
+SetStyleFilterToCSSValue(nsStyleFilter* aStyleFilter,
+                         const nsCSSValue& aValue,
+                         nsStyleContext* aStyleContext,
+                         nsPresContext* aPresContext,
+                         bool& aCanStoreInRuleTree)
 {
   nsCSSUnit unit = aValue.GetUnit();
   if (unit == eCSSUnit_URL) {

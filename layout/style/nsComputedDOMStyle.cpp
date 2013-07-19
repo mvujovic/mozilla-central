@@ -4469,43 +4469,43 @@ nsComputedDOMStyle::DoGetClipPath()
 }
 
 void
-nsComputedDOMStyle::SetCssTextToCoord(nsAutoString* aCssText,
+nsComputedDOMStyle::SetCssTextToCoord(nsAString& aCssText,
                                       const nsStyleCoord& aCoord)
 {
   nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
   bool clampNegativeCalc = true;
   SetValueToCoord(value, aCoord, clampNegativeCalc);
-  value->GetCssText(*aCssText);
+  value->GetCssText(aCssText);
   delete value;
 }
 
 static void
-FilterFunctionName(nsAutoString* aString, nsStyleFilter::Type mType)
+GetFilterFunctionName(nsAString& aString, nsStyleFilter::Type mType)
 {
   switch(mType) {
     case nsStyleFilter::Type::eBlur:
-      aString->AssignLiteral("blur(");
+      aString.AssignLiteral("blur(");
       break;
     case nsStyleFilter::Type::eBrightness:
-      aString->AssignLiteral("brightness(");
+      aString.AssignLiteral("brightness(");
       break;
     case nsStyleFilter::Type::eContrast:
-      aString->AssignLiteral("contrast(");
+      aString.AssignLiteral("contrast(");
       break;
     case nsStyleFilter::Type::eGrayscale:
-      aString->AssignLiteral("grayscale(");
+      aString.AssignLiteral("grayscale(");
       break;
     case nsStyleFilter::Type::eInvert:
-      aString->AssignLiteral("invert(");
+      aString.AssignLiteral("invert(");
       break;
     case nsStyleFilter::Type::eOpacity:
-      aString->AssignLiteral("opacity(");
+      aString.AssignLiteral("opacity(");
       break;
     case nsStyleFilter::Type::eSaturate:
-      aString->AssignLiteral("saturate(");
+      aString.AssignLiteral("saturate(");
       break;
     case nsStyleFilter::Type::eSepia:
-      aString->AssignLiteral("sepia(");
+      aString.AssignLiteral("sepia(");
       break;
     default:
       NS_NOTREACHED("unrecognized filter type");
@@ -4526,11 +4526,11 @@ nsComputedDOMStyle::CreatePrimitiveValueForStyleFilter(
 
   // Filter function name and opening parenthesis.
   nsAutoString filterFunctionString;
-  FilterFunctionName(&filterFunctionString, aStyleFilter.mType);
+  GetFilterFunctionName(filterFunctionString, aStyleFilter.mType);
 
   // Filter function argument.
   nsAutoString argumentString;
-  SetCssTextToCoord(&argumentString, aStyleFilter.mCoord);
+  SetCssTextToCoord(argumentString, aStyleFilter.mCoord);
   filterFunctionString.Append(argumentString);
 
   // Filter function closing parenthesis.
@@ -4545,7 +4545,7 @@ nsComputedDOMStyle::DoGetFilter()
 {
   const nsTArray<nsStyleFilter>& filters = StyleSVGReset()->mFilters;
 
-  if (!filters.Length()) {
+  if (filters.IsEmpty()) {
     nsROCSSPrimitiveValue* value = new nsROCSSPrimitiveValue;
     value->SetIdent(eCSSKeyword_none);
     return value;

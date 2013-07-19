@@ -10148,37 +10148,38 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
   }
 
   // Set up the parsing rules based on the filter function.
-  int32_t variant = VARIANT_PN;
+  int32_t variantMask = VARIANT_PN;
   bool rejectNegativeArgument = true;
   bool clampArgumentToOne = false;
   nsCSSKeyword functionName = nsCSSKeywords::LookupKeyword(mToken.mIdent);
-  switch(functionName) {
-  case eCSSKeyword_blur:
-    variant = VARIANT_LCALC | VARIANT_NONNEGATIVE_DIMENSION;
-    // VARIANT_NONNEGATIVE_DIMENSION will already reject negative lengths.
-    rejectNegativeArgument = false;
-    break;
-  case eCSSKeyword_grayscale:
-  case eCSSKeyword_invert:
-  case eCSSKeyword_sepia:
-  case eCSSKeyword_opacity:
-    clampArgumentToOne = true;
-    break;
-  case eCSSKeyword_brightness:
-  case eCSSKeyword_contrast:
-  case eCSSKeyword_saturate:
-    break;
-  default:
-    // Unrecognized filter function.
-    REPORT_UNEXPECTED_TOKEN(PEExpectedURLOrFilterFunction);
-    return false;
+  switch (functionName) {
+    case eCSSKeyword_blur:
+      variantMask = VARIANT_LCALC | VARIANT_NONNEGATIVE_DIMENSION;
+      // VARIANT_NONNEGATIVE_DIMENSION will already reject negative lengths.
+      rejectNegativeArgument = false;
+      break;
+    case eCSSKeyword_grayscale:
+    case eCSSKeyword_invert:
+    case eCSSKeyword_sepia:
+    case eCSSKeyword_opacity:
+      clampArgumentToOne = true;
+      break;
+    case eCSSKeyword_brightness:
+    case eCSSKeyword_contrast:
+    case eCSSKeyword_saturate:
+      break;
+    default:
+      // Unrecognized filter function.
+      REPORT_UNEXPECTED_TOKEN(PEExpectedURLOrFilterFunction);
+      SkipUntil(')');
+      return false;
   }
 
   // Parse the function.
   uint16_t minElems = 1U;
   uint16_t maxElems = 1U;
   uint32_t allVariants = 0;
-  if (!ParseFunction(functionName, &variant, allVariants,
+  if (!ParseFunction(functionName, &variantMask, allVariants,
                      minElems, maxElems, *aValue)) {
     REPORT_UNEXPECTED(PEUnexpectedFunctionArguments);
     return false;
@@ -10194,9 +10195,9 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
   nsCSSValue& arg = aValue->GetArrayValue()->Item(1);
 
   if (rejectNegativeArgument &&
-      ((arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0.0f) ||
-       (arg.GetUnit() == eCSSUnit_Percent && arg.GetPercentValue() < 0.0f))) {
-    REPORT_UNEXPECTED(PENegativeFilterFunctionArgument);
+      ((arg.GetUnit() == eCSSUnit_Percent && arg.GetPercentValue() < 0.0f) ||
+       (arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0.0f))) {
+    REPORT_UNEXPECTED(PEExpectedNonnegativePN);
     return false;
   }
 
@@ -10204,8 +10205,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
     if (arg.GetUnit() == eCSSUnit_Number &&
         arg.GetFloatValue() > 1.0f) {
       arg.SetFloatValue(1.0f, arg.GetUnit());
-    }
-    else if (arg.GetUnit() == eCSSUnit_Percent &&
+    } else if (arg.GetUnit() == eCSSUnit_Percent &&
              arg.GetPercentValue() > 1.0f) {
       arg.SetPercentValue(1.0f);
     }
@@ -10214,7 +10214,8 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
   return true;
 }
 
-/* Parses a filter property value by continuously reading in urls and/or filter
+/**
+ * Parses a filter property value by continuously reading in urls and/or filter
  * functions and constructing a list.
  *
  * When CSS Filters are enabled, the filter property accepts one or more SVG
