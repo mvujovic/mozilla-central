@@ -2263,6 +2263,8 @@ struct nsStyleFilter {
   nsStyleFilter(const nsStyleFilter& aSource);
   ~nsStyleFilter();
 
+  bool operator==(const nsStyleFilter& aOther) const;
+
   enum Type {
     eNull,
     eURL,

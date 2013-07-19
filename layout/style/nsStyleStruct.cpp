@@ -1014,15 +1014,32 @@ nsStyleFilter::nsStyleFilter(const nsStyleFilter& aSource)
 {
   MOZ_COUNT_CTOR(nsStyleFilter);
 
-  if (mType == eURL)
+  if (mType == eURL) {
     mUrl = aSource.mUrl;
-  else if (mType != eNull)
+  } else if (mType != eNull) {
     mCoord = aSource.mCoord;
+  }
 }
 
 nsStyleFilter::~nsStyleFilter()
 {
   MOZ_COUNT_DTOR(nsStyleFilter);
+}
+
+bool
+nsStyleFilter::operator==(const nsStyleFilter& aOther) const
+{
+  if (mType != aOther.mType) {
+      return false;
+  }
+
+  if (mType == eURL) {
+    return EqualURIs(mUrl, aOther.mUrl);
+  } else if (mType != eNull) {
+    return mCoord == aOther.mCoord;
+  }
+
+  return true;
 }
 
 // --------------------
@@ -1069,8 +1086,8 @@ nsChangeHint nsStyleSVGReset::CalcDifference(const nsStyleSVGReset& aOther) cons
   nsChangeHint hint = nsChangeHint(0);
 
   if (!EqualURIs(mClipPath, aOther.mClipPath) ||
-      !EqualURIs(DeprecatedFilter(), aOther.DeprecatedFilter()) ||
-      !EqualURIs(mMask, aOther.mMask)) {
+      !EqualURIs(mMask, aOther.mMask) ||
+      mFilters != aOther.mFilters) {
     NS_UpdateHint(hint, nsChangeHint_UpdateEffects);
     NS_UpdateHint(hint, nsChangeHint_RepaintFrame);
   }
