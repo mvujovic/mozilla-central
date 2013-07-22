@@ -10133,7 +10133,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
 
   if (!nsLayoutUtils::CSSFiltersEnabled()) {
     // With CSS Filters disabled, we should only accept an SVG reference filter.
-    REPORT_UNEXPECTED_TOKEN(PEExpectedURL);
+    REPORT_UNEXPECTED_TOKEN(PEExpectedNoneOrURL);
     return false;
   }
 
@@ -10143,7 +10143,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
   }
 
   if (mToken.mType != eCSSToken_Function) {
-    REPORT_UNEXPECTED_TOKEN(PEExpectedURLOrFilterFunction);
+    REPORT_UNEXPECTED_TOKEN(PEExpectedNoneOrURLOrFilterFunction);
     return false;
   }
 
@@ -10170,7 +10170,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
       break;
     default:
       // Unrecognized filter function.
-      REPORT_UNEXPECTED_TOKEN(PEExpectedURLOrFilterFunction);
+      REPORT_UNEXPECTED_TOKEN(PEExpectedNoneOrURLOrFilterFunction);
       SkipUntil(')');
       return false;
   }
@@ -10181,7 +10181,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
   uint32_t allVariants = 0;
   if (!ParseFunction(functionName, &variantMask, allVariants,
                      minElems, maxElems, *aValue)) {
-    REPORT_UNEXPECTED(PEUnexpectedFunctionArguments);
+    REPORT_UNEXPECTED(PEFilterFunctionArgumentsParsingError);
     return false;
   }
 
@@ -10197,7 +10197,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
   if (rejectNegativeArgument &&
       ((arg.GetUnit() == eCSSUnit_Percent && arg.GetPercentValue() < 0.0f) ||
        (arg.GetUnit() == eCSSUnit_Number && arg.GetFloatValue() < 0.0f))) {
-    REPORT_UNEXPECTED(PEExpectedNonnegativePN);
+    REPORT_UNEXPECTED(PEExpectedNonnegativeNP);
     return false;
   }
 
@@ -10206,7 +10206,7 @@ CSSParserImpl::ParseSingleFilter(nsCSSValue* aValue)
         arg.GetFloatValue() > 1.0f) {
       arg.SetFloatValue(1.0f, arg.GetUnit());
     } else if (arg.GetUnit() == eCSSUnit_Percent &&
-             arg.GetPercentValue() > 1.0f) {
+               arg.GetPercentValue() > 1.0f) {
       arg.SetPercentValue(1.0f);
     }
   }
