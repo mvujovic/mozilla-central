@@ -4482,7 +4482,7 @@ nsComputedDOMStyle::SetCssTextToCoord(nsAString& aCssText,
 static void
 GetFilterFunctionName(nsAString& aString, nsStyleFilter::Type mType)
 {
-  switch(mType) {
+  switch (mType) {
     case nsStyleFilter::Type::eBlur:
       aString.AssignLiteral("blur(");
       break;
